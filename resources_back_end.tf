@@ -1,20 +1,9 @@
-resource "aws_dynamodb_table" "minimal_backend_table" {
-  name           = "minimal-backend-table"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 5
-  write_capacity = 5
-  hash_key       = "id"
-
-  attribute {
-    name = "id"
-    type = "N"
-  }
-}
+# Lambda function
 
 data "archive_file" "backend_function_package" {
   type        = "zip"
-  source_file = "./backend_lambda_function.py"
-  output_path = "./backend_lambda_function.zip"
+  source_file = "./resources_back_end/backend_lambda_function.py"
+  output_path = "./resources_back_end/backend_lambda_function.zip"
 }
 
 resource "aws_lambda_function" "minimal_backend_function" {
@@ -28,42 +17,7 @@ resource "aws_lambda_function" "minimal_backend_function" {
   role = aws_iam_role.function_assume_role.arn
 }
 
-data "aws_iam_policy_document" "function_assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "function_assume_role" {
-  name = "lambda-dynamodb-role"
-
-  assume_role_policy = data.aws_iam_policy_document.function_assume_role_policy.json
-}
-
-data "aws_iam_policy_document" "function_permissions" {
-  statement {
-    sid = "LambdaDynamodb"
-    actions = [
-      "dynamodb:Scan",
-      "dynamodb:PutItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:UpdateItem"
-    ]
-    resources = [aws_dynamodb_table.minimal_backend_table.arn]
-  }
-}
-
-resource "aws_iam_role_policy" "function_permissions" {
-  name = "lambda-dynamodb-policy"
-  role = aws_iam_role.function_assume_role.id
-
-  policy = data.aws_iam_policy_document.function_permissions.json
-}
+# API Gateway
 
 resource "aws_api_gateway_rest_api" "minimal_api" {
   name = "minimal-api"
@@ -128,28 +82,4 @@ resource "aws_lambda_permission" "api_invoke_lambda" {
   # The "/*/*" portion grants access from any method on any resource
   # within the API Gateway REST API.
   source_arn = "${aws_api_gateway_rest_api.minimal_api.execution_arn}/*/*"
-}
-
-resource "aws_s3_bucket" "minimal_frontend_bucket" {
-  website {
-    index_document = "index.html"
-  }
-}
-
-resource "aws_s3_bucket_object" "minimal_index" {
-  bucket       = aws_s3_bucket.minimal_frontend_bucket.id
-  key          = "index.html"
-  source       = "./index.html"
-  acl          = "public-read"
-  content_type = "text/html"
-}
-
-resource "aws_s3_bucket_object" "minimal_script" {
-  bucket = aws_s3_bucket.minimal_frontend_bucket.id
-  key    = "index.js"
-  content = templatefile(
-    "./index.js",
-    { api_url = aws_api_gateway_deployment.minimal.invoke_url }
-  )
-  acl = "public-read"
 }

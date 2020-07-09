@@ -15,6 +15,12 @@ resource "aws_lambda_function" "minimal_backend_function" {
   runtime = "python3.8"
 
   role = aws_iam_role.function_assume_role.arn
+
+  environment {
+    variables = {
+      table_name = aws_dynamodb_table.minimal_backend_table.name
+    }
+  }
 }
 
 # API Gateway

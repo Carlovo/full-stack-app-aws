@@ -1,64 +1,92 @@
 import boto3
 import json
+import os
+
+
+class DatabaseAdapter:
+
+    def __init__(self):
+        self.db_client = boto3.client("dynamodb")
+        self.db_name = os.getenv("table_name")
+
+    def scan_database(self):
+        return self.db_client.scan(TableName=self.db_name)
+
+    def put_item_with_attribute(self, item_id: str, attribute_name: str, value: str):
+        self.db_client.put_item(
+            TableName=self.db_name,
+            Item={
+                "id": {"N": item_id},
+                attribute_name: {"S": value}
+            }
+        )
+
+    def delete_item(self, item_id: str):
+        self.db_client.delete_item(
+            TableName=self.db_name,
+            Key={
+                "id": {
+                    "N": item_id
+                }
+            }
+        )
+
+    def update_item_attribute(self, item_id: str, attribute_name: str, new_value: str):
+        self.db_client.update_item(
+            TableName=self.db_name,
+            Key={
+                "id": {
+                    "N": item_id
+                }
+            },
+            UpdateExpression="SET #n = :new_value",
+            ExpressionAttributeNames={"#n": attribute_name},
+            ExpressionAttributeValues={
+                ":new_value": {
+                    "S": new_value
+                }
+            }
+        )
 
 
 def lambda_handler(event, context):
-    dynamodb = boto3.client("dynamodb")
-    table_name = "minimal-backend-table"
-    table_scan = dynamodb.scan(TableName=table_name)
+    database_adapter = DatabaseAdapter()
+    database_scan = database_adapter.scan_database()
 
     # check for POST, otherwise default to GET
     if event["httpMethod"] == "POST":
 
         request = json.loads(event["body"])
 
+        # check operation type, default to PUT/CREATE
         if request["operation"] == "delete":
-            dynamodb.delete_item(
-                TableName=table_name,
-                Key={
-                    "id": {
-                        "N": request["id"]
-                    }
-                }
-            )
+            database_adapter.delete_item(item_id=request["id"])
         elif request["operation"] == "update":
-            dynamodb.update_item(
-                TableName=table_name,
-                Key={
-                    "id": {
-                        "N": request["id"]
-                    }
-                },
-                UpdateExpression="SET #n = :new_name",
-                ExpressionAttributeNames={"#n": "name"},
-                ExpressionAttributeValues={
-                    ":new_name": {
-                        "S": request["name"]
-                    }
-                }
+            database_adapter.update_item_attribute(
+                item_id=request["id"],
+                attribute_name="name",
+                new_value=request["name"]
             )
         else:
             table_item_ids = [
                 int(item["id"]["N"])
-                for item in table_scan["Items"]
+                for item in database_scan["Items"]
             ]
             table_item_ids.append(0)
 
-            new_id = max(table_item_ids) + 1
+            new_id = str(max(table_item_ids) + 1)
 
-            dynamodb.put_item(
-                TableName=table_name,
-                Item={
-                    "id": {"N": str(new_id)},
-                    "name": {"S": request["name"]}
-                }
+            database_adapter.put_item_with_attribute(
+                item_id=new_id,
+                attribute_name="name",
+                value=request["name"]
             )
 
-        table_scan = dynamodb.scan(TableName=table_name)
+        database_scan = database_adapter.scan_database()
 
     items = [
         {"id": item["id"]["N"], "name": item["name"]["S"]}
-        for item in table_scan["Items"]
+        for item in database_scan["Items"]
     ]
 
     response = {

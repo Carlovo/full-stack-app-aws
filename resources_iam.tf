@@ -26,6 +26,15 @@ data "aws_iam_policy_document" "function_permissions" {
     ]
     resources = [aws_dynamodb_table.minimal_backend_table.arn]
   }
+
+  statement {
+    sid = "LambdaLogging"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [aws_cloudwatch_log_group.backend_function.arn]
+  }
 }
 
 resource "aws_iam_role_policy" "function_permissions" {

@@ -1,3 +1,26 @@
+# front end
+
+resource "aws_cloudfront_origin_access_identity" "minimal_cloudfront_identity" {}
+
+data "aws_iam_policy_document" "cloudfront_s3_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.minimal_frontend_bucket.arn}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.minimal_cloudfront_identity.iam_arn]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "cloudfront_s3_policy" {
+  bucket = aws_s3_bucket.minimal_frontend_bucket.id
+  policy = data.aws_iam_policy_document.cloudfront_s3_policy.json
+}
+
+# back end
+
 data "aws_iam_policy_document" "function_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]

@@ -12,10 +12,9 @@ var minimalApp = new function () {
 
             tr = table.insertRow(-1);
 
-            var idCell = tr.insertCell(-1);
-            idCell.innerHTML = tableEntries[entryNumber]["id"];
             var nameCell = tr.insertCell(-1);
             nameCell.innerHTML = tableEntries[entryNumber]["name"];
+            nameCell.setAttribute("id", tableEntries[entryNumber]["id"]);
 
             this.td = document.createElement("td");
 
@@ -60,8 +59,7 @@ var minimalApp = new function () {
 
         tr = table.insertRow(-1);
 
-        tr.insertCell(0);
-        var newCell = tr.insertCell(1);
+        var newCell = tr.insertCell(0);
 
         var tBox = document.createElement("input");
         tBox.setAttribute("type", "text");
@@ -112,31 +110,25 @@ var minimalApp = new function () {
 
         var activeRow = oButton.parentNode.parentNode.rowIndex;
         var tab = document.getElementById("minimalTable").rows[activeRow];
+        var td = tab.getElementsByTagName("td")[0];
 
         if (oButton.value == "Delete") {
 
-            var td = tab.getElementsByTagName("td")[0];
-
             payload = JSON.stringify({
                 "operation": "delete",
-                "id": td.innerHTML
+                "id": td.id
             })
         }
         else if (oButton.value == "Save") {
 
-            var tdId = tab.getElementsByTagName("td")[0];
-            var tdName = tab.getElementsByTagName("td")[1];
-
             payload = JSON.stringify({
                 "operation": "update",
-                "id": tdId.innerHTML,
-                "name": tdName.childNodes[0].value
+                "id": td.id,
+                "name": td.childNodes[0].value
             })
         }
         // default to create
         else {
-
-            var td = tab.getElementsByTagName("td")[1];
 
             payload = JSON.stringify({
                 "operation": "create",
@@ -151,7 +143,7 @@ var minimalApp = new function () {
         var activeRow = oButton.parentNode.parentNode.rowIndex;
         var tab = document.getElementById("minimalTable").rows[activeRow];
 
-        var td = tab.getElementsByTagName("td")[1];
+        var td = tab.getElementsByTagName("td")[0];
         var inputBox = document.createElement("input");
         inputBox.setAttribute("type", "text");
         inputBox.setAttribute("value", td.innerText);

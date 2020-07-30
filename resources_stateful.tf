@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "minimal_backend_table" {
-  name           = "minimal-backend-table"
+  name           = aws_s3_bucket.minimal_frontend_bucket.id
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
@@ -7,6 +7,6 @@ resource "aws_dynamodb_table" "minimal_backend_table" {
 
   attribute {
     name = "id"
-    type = "N"
+    type = "S"
   }
 }

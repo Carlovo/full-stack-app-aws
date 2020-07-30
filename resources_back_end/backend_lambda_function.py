@@ -1,6 +1,7 @@
 import boto3
 import json
 import os
+import uuid
 
 
 class DatabaseAdapter:
@@ -16,7 +17,7 @@ class DatabaseAdapter:
         self.db_client.put_item(
             TableName=self.db_name,
             Item={
-                "id": {"N": item_id},
+                "id": {"S": item_id},
                 attribute_name: {"S": value}
             }
         )
@@ -26,7 +27,7 @@ class DatabaseAdapter:
             TableName=self.db_name,
             Key={
                 "id": {
-                    "N": item_id
+                    "S": item_id
                 }
             }
         )
@@ -36,7 +37,7 @@ class DatabaseAdapter:
             TableName=self.db_name,
             Key={
                 "id": {
-                    "N": item_id
+                    "S": item_id
                 }
             },
             UpdateExpression="SET #n = :new_value",
@@ -69,13 +70,7 @@ def lambda_handler(event, context):
                 new_value=request["name"]
             )
         else:
-            table_item_ids = [
-                int(item["id"]["N"])
-                for item in database_scan["Items"]
-            ]
-            table_item_ids.append(0)
-
-            new_id = str(max(table_item_ids) + 1)
+            new_id = str(uuid.uuid4())
 
             database_adapter.put_item_with_attribute(
                 item_id=new_id,
@@ -86,7 +81,7 @@ def lambda_handler(event, context):
         database_scan = database_adapter.scan_database()
 
     items = [
-        {"id": item["id"]["N"], "name": item["name"]["S"]}
+        {"id": item["id"]["S"], "name": item["name"]["S"]}
         for item in database_scan["Items"]
     ]
 

@@ -66,6 +66,7 @@ var minimalApp = new function () {
         var tBox = document.createElement("input");
         tBox.setAttribute("type", "text");
         tBox.setAttribute("value", "");
+        tBox.setAttribute("style", "touch-action: none")
 
         newCell.appendChild(tBox);
 
@@ -81,6 +82,18 @@ var minimalApp = new function () {
         var div = document.getElementById("minimal-table");
         div.innerHTML = "";
         div.appendChild(table);
+
+        // scale contents to smallest window dimension and center
+        var scale = Math.min(
+            window.innerHeight / table.clientWidth,
+            window.innerWidth / table.clientWidth
+        );
+
+        table.style["transform"] = "scale(" + scale + ")";
+        table.style["transformOrigin"] = "0% 0%";
+
+        div.style.width = scale * table.clientWidth + "px";
+        div.style.margin = "auto";
     }
 
     this.updateBackEnd = function (oButton) {
@@ -142,6 +155,7 @@ var minimalApp = new function () {
         var inputBox = document.createElement("input");
         inputBox.setAttribute("type", "text");
         inputBox.setAttribute("value", td.innerText);
+        inputBox.setAttribute("style", "touch-action: none")
         td.innerText = "";
         td.appendChild(inputBox);
 

@@ -28,7 +28,8 @@ See [the AWS documentation](https://docs.aws.amazon.com/Route53/latest/Developer
 You can create all the required connections between CloudFront and Route53 by then following the steps below.
 
 Run the regular `terraform init` as normal.
-Run `terraform apply -var='alternate_domain_name=example.com'` and Terraform will try to connect `www.example.com` to your CloudFront distribution. The `alternate_domain_name` has to be an apex domain name.
+Run `terraform apply -var='alternate_domain_name=example.com'` and Terraform will try to connect `example.com` and `www.example.com` to your CloudFront distribution.
+The `alternate_domain_name` has to be an apex domain name.
 
 > Note: most AWS resources deployed with this code typically cost no money under bare usage, but this is not the case for custom domain names and other resources in Route53.
 

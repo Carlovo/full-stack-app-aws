@@ -59,9 +59,10 @@ def lambda_handler(event, context):
         request = json.loads(event["body"])
 
         # check operation type, default to PUT/CREATE
-        if request["operation"] == "delete":
+        if request["operation"] == "Delete":
             database_adapter.delete_item(item_id=request["id"])
-        elif request["operation"] == "update":
+        # the terms Save and Update are intermixed in the front end
+        elif request["operation"] == "Save":
             database_adapter.update_item_attribute(
                 item_id=request["id"],
                 attribute_name="name",

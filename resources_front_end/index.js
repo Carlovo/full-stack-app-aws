@@ -112,29 +112,11 @@ var minimalApp = new function () {
         var tab = document.getElementById("minimalTable").rows[activeRow];
         var td = tab.getElementsByTagName("td")[0];
 
-        if (oButton.value == "Delete") {
-
-            payload = JSON.stringify({
-                "operation": "delete",
-                "id": td.id
-            })
-        }
-        else if (oButton.value == "Save") {
-
-            payload = JSON.stringify({
-                "operation": "update",
-                "id": td.id,
-                "name": td.childNodes[0].value
-            })
-        }
-        // default to create
-        else {
-
-            payload = JSON.stringify({
-                "operation": "create",
-                "name": td.childNodes[0].value
-            })
-        }
+        payload = JSON.stringify({
+            "operation": oButton.value,
+            "id": td.id,
+            "name": td.childNodes[0].value
+        })
 
         xhttp.send(payload);
     }

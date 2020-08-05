@@ -53,6 +53,7 @@ var minimalApp = new function () {
 
             btDelete.setAttribute("type", "button");
             btDelete.setAttribute("value", "Delete");
+            btDelete.setAttribute("id", "Delete" + entryNumber);
             btDelete.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
             this.td.appendChild(btDelete);
         }
@@ -96,29 +97,36 @@ var minimalApp = new function () {
 
     this.updateBackEnd = function (oButton) {
 
-        var xhttp = new XMLHttpRequest();
-
-        xhttp.onreadystatechange = function () {
-
-            if (this.readyState == 4 && this.status == 200) {
-
-                minimalApp.buildTable(this.responseText)
-            }
-        }
-
-        xhttp.open("POST", apiUrl, true);
-
         var activeRow = oButton.parentNode.parentNode.rowIndex;
         var tab = document.getElementById("minimalTable").rows[activeRow];
         var td = tab.getElementsByTagName("td")[0];
 
-        payload = JSON.stringify({
-            "operation": oButton.value,
-            "id": td.id,
-            "name": td.childNodes[0].value
-        })
+        if (td.childNodes[0].value != "") {
 
-        xhttp.send(payload);
+            var xhttp = new XMLHttpRequest();
+
+            xhttp.onreadystatechange = function () {
+
+                if (this.readyState == 4 && this.status == 200) {
+
+                    minimalApp.buildTable(this.responseText)
+                }
+            }
+
+            xhttp.open("POST", apiUrl, true);
+
+            payload = JSON.stringify({
+                "operation": oButton.value,
+                "id": td.id,
+                "name": td.childNodes[0].value
+            })
+
+            xhttp.send(payload);
+        }
+        else {
+
+            alert("input field may not be empty");
+        }
     }
 
     this.editItem = function (oButton) {
@@ -138,6 +146,9 @@ var minimalApp = new function () {
 
         var btSave = document.getElementById("Save" + activeRow);
         btSave.setAttribute("style", "display:block");
+
+        var btDelete = document.getElementById("Delete" + activeRow);
+        btDelete.setAttribute("style", "display:none");
 
         oButton.setAttribute("style", "display:none;");
     }

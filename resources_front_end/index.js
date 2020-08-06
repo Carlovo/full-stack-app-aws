@@ -122,6 +122,12 @@ var minimalApp = new function () {
             })
 
             xhttp.send(payload);
+
+            var inputElements = document.getElementsByTagName("input");
+
+            Object.keys(inputElements).forEach(function (key) {
+                inputElements[key].disabled = true;
+            });
         }
         else {
 

@@ -22,21 +22,21 @@ resource "aws_acm_certificate" "cert" {
 resource "aws_route53_record" "apex_cert_validation" {
   count = var.alternate_domain_name == "" ? 0 : 1
 
-  name    = aws_acm_certificate.cert[0].domain_validation_options.0.resource_record_name
-  type    = aws_acm_certificate.cert[0].domain_validation_options.0.resource_record_type
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  records = [aws_acm_certificate.cert[0].domain_validation_options.0.resource_record_value]
+  name    = tolist(aws_acm_certificate.cert[0].domain_validation_options)[0].resource_record_name
+  records = [tolist(aws_acm_certificate.cert[0].domain_validation_options)[0].resource_record_value]
   ttl     = 60
+  type    = tolist(aws_acm_certificate.cert[0].domain_validation_options)[0].resource_record_type
+  zone_id = data.aws_route53_zone.selected[0].zone_id
 }
 
 resource "aws_route53_record" "www_cert_validation" {
   count = var.alternate_domain_name == "" ? 0 : 1
 
-  name    = aws_acm_certificate.cert[0].domain_validation_options.1.resource_record_name
-  type    = aws_acm_certificate.cert[0].domain_validation_options.1.resource_record_type
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  records = [aws_acm_certificate.cert[0].domain_validation_options.1.resource_record_value]
+  name    = tolist(aws_acm_certificate.cert[0].domain_validation_options)[1].resource_record_name
+  records = [tolist(aws_acm_certificate.cert[0].domain_validation_options)[1].resource_record_value]
   ttl     = 60
+  type    = tolist(aws_acm_certificate.cert[0].domain_validation_options)[1].resource_record_type
+  zone_id = data.aws_route53_zone.selected[0].zone_id
 }
 
 resource "aws_acm_certificate_validation" "cert" {

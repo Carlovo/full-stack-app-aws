@@ -1,56 +1,15 @@
-# The resources below contain some count, for_each etc. statements
-# to handle a custom domain name for AWS CloudFront
-# if one was provided as input variable to Terraform.
-# Terraform support for count, for_each etc. statements
-# in module blocks would greatly beautify this code section.
-
-resource "aws_acm_certificate" "cert" {
+module "certificate_and_validation" {
   count = var.alternate_domain_name == "" ? 0 : 1
 
+  source = "./modules/certificate_and_validation"
+
   # CloudFront accepts only ACM certificates from US-EAST-1
-  provider = aws.useast1
-
-  domain_name               = var.alternate_domain_name
-  subject_alternative_names = [local.alternate_domain_name_www]
-  validation_method         = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
+  providers = {
+    aws = aws.useast1
   }
-}
 
-resource "aws_route53_record" "apex_cert_validation" {
-  count = var.alternate_domain_name == "" ? 0 : 1
-
-  name    = tolist(aws_acm_certificate.cert[0].domain_validation_options)[0].resource_record_name
-  records = [tolist(aws_acm_certificate.cert[0].domain_validation_options)[0].resource_record_value]
-  ttl     = 60
-  type    = tolist(aws_acm_certificate.cert[0].domain_validation_options)[0].resource_record_type
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-}
-
-resource "aws_route53_record" "www_cert_validation" {
-  count = var.alternate_domain_name == "" ? 0 : 1
-
-  name    = tolist(aws_acm_certificate.cert[0].domain_validation_options)[1].resource_record_name
-  records = [tolist(aws_acm_certificate.cert[0].domain_validation_options)[1].resource_record_value]
-  ttl     = 60
-  type    = tolist(aws_acm_certificate.cert[0].domain_validation_options)[1].resource_record_type
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-}
-
-resource "aws_acm_certificate_validation" "cert" {
-  count = var.alternate_domain_name == "" ? 0 : 1
-
-  # CloudFront accepts only ACM certificates from US-EAST-1
-  provider = aws.useast1
-
-  certificate_arn = aws_acm_certificate.cert[0].arn
-
-  validation_record_fqdns = [
-    aws_route53_record.apex_cert_validation[0].fqdn,
-    aws_route53_record.www_cert_validation[0].fqdn
-  ]
+  domain_names = local.alternate_domain_names
+  zone_id      = data.aws_route53_zone.selected[0].zone_id
 }
 
 resource "aws_cloudfront_distribution" "minimal_distribution" {
@@ -63,7 +22,7 @@ resource "aws_cloudfront_distribution" "minimal_distribution" {
     }
   }
 
-  aliases             = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, local.alternate_domain_name_www]
+  aliases             = local.alternate_domain_names
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
@@ -104,18 +63,14 @@ resource "aws_cloudfront_distribution" "minimal_distribution" {
   dynamic "viewer_certificate" {
     for_each = var.alternate_domain_name == "" ? [] : [1]
     content {
-      acm_certificate_arn = aws_acm_certificate_validation.cert[0].certificate_arn
+      acm_certificate_arn = module.certificate_and_validation[0].acm_certificate_arn
       ssl_support_method  = "sni-only"
     }
   }
 }
 
 module "alias_a_records" {
-  for_each = toset(var.alternate_domain_name == "" ? [] : [
-    var.alternate_domain_name,
-    local.alternate_domain_name_www
-    ]
-  )
+  for_each = toset(local.alternate_domain_names)
 
   source = "./modules/route53_alias_a_records"
 

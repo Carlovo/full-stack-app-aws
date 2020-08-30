@@ -5,5 +5,5 @@ variable "alternate_domain_name" {
 }
 
 locals {
-  alternate_domain_name_www = "www.${var.alternate_domain_name}"
+  alternate_domain_names = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, "www.${var.alternate_domain_name}"]
 }

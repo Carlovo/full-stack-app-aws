@@ -110,58 +110,18 @@ resource "aws_cloudfront_distribution" "minimal_distribution" {
   }
 }
 
-resource "aws_route53_record" "apex_ipv4" {
-  count = var.alternate_domain_name == "" ? 0 : 1
+module "alias_a_records" {
+  for_each = toset(var.alternate_domain_name == "" ? [] : [
+    var.alternate_domain_name,
+    local.alternate_domain_name_www
+    ]
+  )
 
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  name    = var.alternate_domain_name
-  type    = "A"
+  source = "./modules/route53_alias_a_records"
 
-  alias {
-    name                   = aws_cloudfront_distribution.minimal_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.minimal_distribution.hosted_zone_id
-    evaluate_target_health = true
-  }
-}
+  dns_record_name = each.key
 
-resource "aws_route53_record" "apex_ipv6" {
-  count = var.alternate_domain_name == "" ? 0 : 1
-
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  name    = var.alternate_domain_name
-  type    = "AAAA"
-
-  alias {
-    name                   = aws_cloudfront_distribution.minimal_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.minimal_distribution.hosted_zone_id
-    evaluate_target_health = true
-  }
-}
-
-resource "aws_route53_record" "www_ipv4" {
-  count = var.alternate_domain_name == "" ? 0 : 1
-
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  name    = local.alternate_domain_name_www
-  type    = "A"
-
-  alias {
-    name                   = aws_cloudfront_distribution.minimal_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.minimal_distribution.hosted_zone_id
-    evaluate_target_health = true
-  }
-}
-
-resource "aws_route53_record" "www_ipv6" {
-  count = var.alternate_domain_name == "" ? 0 : 1
-
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  name    = local.alternate_domain_name_www
-  type    = "AAAA"
-
-  alias {
-    name                   = aws_cloudfront_distribution.minimal_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.minimal_distribution.hosted_zone_id
-    evaluate_target_health = true
-  }
+  hosted_zone_id       = data.aws_route53_zone.selected[0].zone_id
+  alias_domain_name    = aws_cloudfront_distribution.minimal_distribution.domain_name
+  alias_hosted_zone_id = aws_cloudfront_distribution.minimal_distribution.hosted_zone_id
 }

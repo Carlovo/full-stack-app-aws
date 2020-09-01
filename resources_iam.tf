@@ -40,7 +40,6 @@ resource "aws_iam_role" "function_assume_role" {
 
 data "aws_iam_policy_document" "function_permissions" {
   statement {
-    sid = "LambdaDynamodb"
     actions = [
       "dynamodb:Scan",
       "dynamodb:PutItem",
@@ -51,12 +50,11 @@ data "aws_iam_policy_document" "function_permissions" {
   }
 
   statement {
-    sid = "LambdaLogging"
     actions = [
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = [aws_cloudwatch_log_group.backend_function.arn]
+    resources = ["${aws_cloudwatch_log_group.backend_function.arn}:*"]
   }
 }
 

@@ -13,12 +13,13 @@ class DatabaseAdapter:
     def scan_database(self):
         return self.db_client.scan(TableName=self.db_name)
 
-    def put_item_with_attribute(self, item_id: str, attribute_name: str, value: str):
+    def put_item(self, item_id: str, item_name: str):
         self.db_client.put_item(
             TableName=self.db_name,
             Item={
                 "id": {"S": item_id},
-                attribute_name: {"S": value}
+                "name": {"S": item_name},
+                "check": {"BOOL": False}
             }
         )
 
@@ -32,7 +33,7 @@ class DatabaseAdapter:
             }
         )
 
-    def update_item_attribute(self, item_id: str, attribute_name: str, new_value: str):
+    def update_item(self, item_id: str, item_name: str, item_check: str):
         self.db_client.update_item(
             TableName=self.db_name,
             Key={
@@ -40,11 +41,14 @@ class DatabaseAdapter:
                     "S": item_id
                 }
             },
-            UpdateExpression="SET #n = :new_value",
-            ExpressionAttributeNames={"#n": attribute_name},
+            UpdateExpression="SET #n = :new_name, #c = :new_check",
+            ExpressionAttributeNames={"#n": "name", "#c": "check"},
             ExpressionAttributeValues={
-                ":new_value": {
-                    "S": new_value
+                ":new_name": {
+                    "S": item_name
+                },
+                ":new_check": {
+                    "BOOL": item_check
                 }
             }
         )
@@ -62,26 +66,30 @@ def lambda_handler(event, context):
         # check operation type, default to PUT/CREATE
         if request["operation"] == "Delete":
             database_adapter.delete_item(item_id=request["id"])
-        # the terms Save and Update are intermixed in the front end
+        # there are multiple actions in the front end that can update the table
         elif request["operation"] == "Save":
-            database_adapter.update_item_attribute(
+            request["check"] = False
+            database_adapter.update_item(
                 item_id=request["id"],
-                attribute_name="name",
-                new_value=request["name"]
+                item_name=request["name"],
+                item_check=request["check"]
             )
         else:
             new_id = str(uuid.uuid4())
 
-            database_adapter.put_item_with_attribute(
+            database_adapter.put_item(
                 item_id=new_id,
-                attribute_name="name",
-                value=request["name"]
+                item_name=request["name"],
             )
 
         database_scan = database_adapter.scan_database()
 
     items = [
-        {"id": item["id"]["S"], "name": item["name"]["S"]}
+        {
+            "id": item["id"]["S"],
+            "name": item["name"]["S"],
+            "check": item["check"]["BOOL"]
+        }
         for item in database_scan["Items"]
     ]
 

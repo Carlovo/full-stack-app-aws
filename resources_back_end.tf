@@ -9,7 +9,8 @@ data "archive_file" "backend_function_package" {
 resource "aws_lambda_function" "minimal_backend_function" {
   function_name = "minimal-backend-function"
 
-  filename = data.archive_file.backend_function_package.output_path
+  filename         = data.archive_file.backend_function_package.output_path
+  source_code_hash = data.archive_file.backend_function_package.output_base64sha256
 
   handler = "backend_lambda_function.lambda_handler"
   runtime = "python3.8"

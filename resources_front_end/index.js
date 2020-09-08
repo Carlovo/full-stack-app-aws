@@ -12,55 +12,59 @@ var minimalApp = new function () {
 
             tr = table.insertRow(-1);
 
+            var idCell = tr.insertCell(-1);
+            idCell.innerHTML = tableEntries[entryNumber]["id"];
+            idCell.setAttribute("id", "Id-" + entryNumber);
+            idCell.setAttribute("style", "display:none;");
+
             var nameCell = tr.insertCell(-1);
             nameCell.innerHTML = tableEntries[entryNumber]["name"];
-            nameCell.setAttribute("id", tableEntries[entryNumber]["id"]);
+            nameCell.setAttribute("id", "Name-" + entryNumber);
 
-            this.td = document.createElement("td");
+            var updateCell = tr.insertCell(-1);
 
-            tr.appendChild(this.td);
             var btUpdate = document.createElement("input");
-
             btUpdate.setAttribute("type", "button");
             btUpdate.setAttribute("value", "Update");
+            btUpdate.setAttribute("id", "Update-" + entryNumber);
             btUpdate.setAttribute("onclick", "minimalApp.editItem(this)");
-            this.td.appendChild(btUpdate);
+            updateCell.appendChild(btUpdate);
 
-            tr.appendChild(this.td);
             var btCancel = document.createElement("input");
-
             btCancel.setAttribute("type", "button");
             btCancel.setAttribute("value", "Cancel");
-            btCancel.setAttribute("id", "Cancel" + entryNumber);
+            btCancel.setAttribute("id", "Cancel-" + entryNumber);
             btCancel.setAttribute("style", "display:none;");
             btCancel.setAttribute("onclick", "minimalApp.loadFrontEnd()");
-            this.td.appendChild(btCancel);
+            updateCell.appendChild(btCancel);
 
-            tr.appendChild(this.td);
             var btSave = document.createElement("input");
-
             btSave.setAttribute("type", "button");
             btSave.setAttribute("value", "Save");
-            btSave.setAttribute("id", "Save" + entryNumber);
+            btSave.setAttribute("id", "Save-" + entryNumber);
             btSave.setAttribute("style", "display:none;");
             btSave.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
-            this.td.appendChild(btSave);
+            updateCell.appendChild(btSave);
 
-            this.td = document.createElement("td");
-
-            tr.appendChild(this.td);
+            var deleteCell = tr.insertCell(-1);
             var btDelete = document.createElement("input");
-
             btDelete.setAttribute("type", "button");
             btDelete.setAttribute("value", "Delete");
-            btDelete.setAttribute("id", "Delete" + entryNumber);
+            btDelete.setAttribute("id", "Delete-" + entryNumber);
             btDelete.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
-            this.td.appendChild(btDelete);
+            deleteCell.appendChild(btDelete);
         }
 
         tr = table.insertRow(-1);
 
-        var newCell = tr.insertCell(0);
+        // this is just a placeholder
+        var idCell = tr.insertCell(-1);
+        idCell.innerHTML = "-";
+        idCell.setAttribute("id", "Id-" + entryNumber);
+        idCell.setAttribute("style", "display:none;");
+
+        var newCell = tr.insertCell(-1);
+        newCell.setAttribute("id", "Name-" + entryNumber);
 
         var tBox = document.createElement("input");
         tBox.setAttribute("type", "text");
@@ -69,14 +73,13 @@ var minimalApp = new function () {
 
         newCell.appendChild(tBox);
 
-        this.td = document.createElement("td");
-        tr.appendChild(this.td);
-
+        var createCell = tr.insertCell(-1);
         var btNew = document.createElement("input");
         btNew.setAttribute("type", "button");
         btNew.setAttribute("value", "Create");
+        btNew.setAttribute("id", "Create-" + entryNumber);
         btNew.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
-        this.td.appendChild(btNew);
+        createCell.appendChild(btNew);
 
         var div = document.getElementById("minimal-table");
         div.innerHTML = "";
@@ -97,11 +100,11 @@ var minimalApp = new function () {
 
     this.updateBackEnd = function (oButton) {
 
-        var activeRow = oButton.parentNode.parentNode.rowIndex;
-        var tab = document.getElementById("minimalTable").rows[activeRow];
-        var td = tab.getElementsByTagName("td")[0];
+        var activeRow = oButton.id.split("-")[1];
+        var idCell = document.getElementById("Id-" + activeRow);
+        var nameCell = document.getElementById("Name-" + activeRow);
 
-        if (td.childNodes[0].value != "") {
+        if (nameCell.childNodes[0].value != "") {
 
             var xhttp = new XMLHttpRequest();
 
@@ -117,8 +120,8 @@ var minimalApp = new function () {
 
             payload = JSON.stringify({
                 "operation": oButton.value,
-                "id": td.id,
-                "name": td.childNodes[0].value
+                "id": idCell.innerHTML,
+                "name": nameCell.childNodes[0].value
             })
 
             xhttp.send(payload);
@@ -136,24 +139,24 @@ var minimalApp = new function () {
     }
 
     this.editItem = function (oButton) {
-        var activeRow = oButton.parentNode.parentNode.rowIndex;
-        var tab = document.getElementById("minimalTable").rows[activeRow];
 
-        var td = tab.getElementsByTagName("td")[0];
+        var activeRow = oButton.id.split("-")[1];
+        var nameCell = document.getElementById("Name-" + activeRow);
+
         var inputBox = document.createElement("input");
         inputBox.setAttribute("type", "text");
-        inputBox.setAttribute("value", td.innerText);
+        inputBox.setAttribute("value", nameCell.innerText);
         inputBox.setAttribute("style", "touch-action: none")
-        td.innerText = "";
-        td.appendChild(inputBox);
+        nameCell.innerText = "";
+        nameCell.appendChild(inputBox);
 
-        var btCancel = document.getElementById("Cancel" + activeRow);
+        var btCancel = document.getElementById("Cancel-" + activeRow);
         btCancel.setAttribute("style", "display:block");
 
-        var btSave = document.getElementById("Save" + activeRow);
+        var btSave = document.getElementById("Save-" + activeRow);
         btSave.setAttribute("style", "display:block");
 
-        var btDelete = document.getElementById("Delete" + activeRow);
+        var btDelete = document.getElementById("Delete-" + activeRow);
         btDelete.setAttribute("style", "display:none");
 
         oButton.setAttribute("style", "display:none;");

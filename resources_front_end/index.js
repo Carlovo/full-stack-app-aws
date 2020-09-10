@@ -17,6 +17,16 @@ var minimalApp = new function () {
             idCell.setAttribute("id", "Id-" + entryNumber);
             idCell.setAttribute("style", "display:none;");
 
+            var checkCell = tr.insertCell(-1);
+
+            var cbCheck = document.createElement("input");
+            checkCell.setAttribute("class", "check");
+            cbCheck.setAttribute("type", "checkbox");
+            cbCheck.checked = tableEntries[entryNumber]["check"];
+            cbCheck.setAttribute("id", "Check-" + entryNumber);
+            checkCell.setAttribute("style", "display:none;");
+            checkCell.appendChild(cbCheck);
+
             var nameCell = tr.insertCell(-1);
             nameCell.innerHTML = tableEntries[entryNumber]["name"];
             nameCell.setAttribute("id", "Name-" + entryNumber);
@@ -57,12 +67,19 @@ var minimalApp = new function () {
 
         tr = table.insertRow(-1);
 
-        // this is just a placeholder
+        // these are just a placeholder
         var idCell = tr.insertCell(-1);
         idCell.innerHTML = "-";
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
 
+        var checkCell = tr.insertCell(-1);
+        checkCell.setAttribute("class", "check");
+        checkCell.innerHTML = "";
+        checkCell.setAttribute("id", "Check-" + entryNumber);
+        checkCell.setAttribute("style", "display:none;");
+
+        // these are actual content
         var newCell = tr.insertCell(-1);
         newCell.setAttribute("id", "Name-" + entryNumber);
 
@@ -81,21 +98,41 @@ var minimalApp = new function () {
         btNew.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
         createCell.appendChild(btNew);
 
+        tr = table.insertRow(-1);
+        var emptyCell = tr.insertCell(-1);
+        emptyCell.innerHTML = "&nbsp;"
+
+        tr = table.insertRow(-1);
+
+        // these are just a placeholder
+        var idCell = tr.insertCell(-1);
+        idCell.innerHTML = "-";
+        idCell.setAttribute("id", "Id-" + entryNumber + 1);
+        idCell.setAttribute("style", "display:none;");
+
+        var checkCell = tr.insertCell(-1);
+        checkCell.setAttribute("class", "check");
+        checkCell.innerHTML = "";
+        checkCell.setAttribute("id", "Check-" + entryNumber + 1);
+        checkCell.setAttribute("style", "display:none;");
+
+        // these are actual content
+        var checkOptionCell = tr.insertCell(-1);
+        checkOptionCell.innerHTML = "Checkboxes";
+
+        var checkCell = tr.insertCell(-1);
+
+        var cbCheck = document.createElement("input");
+        cbCheck.setAttribute("type", "checkbox");
+        cbCheck.checked = false;
+        cbCheck.setAttribute("onclick", "minimalApp.toggleCheckBoxes(this)");
+        checkCell.appendChild(cbCheck);
+
         var div = document.getElementById("minimal-table");
         div.innerHTML = "";
         div.appendChild(table);
 
-        // scale contents to smallest window dimension and center
-        var scale = Math.min(
-            window.innerHeight / table.clientWidth,
-            window.innerWidth / table.clientWidth
-        );
-
-        table.style["transform"] = "scale(" + scale + ")";
-        table.style["transformOrigin"] = "0% 0%";
-
-        div.style.width = scale * table.clientWidth + "px";
-        div.style.margin = "auto";
+        minimalApp.scaleMainTable()
     }
 
     this.updateBackEnd = function (oButton) {
@@ -160,6 +197,40 @@ var minimalApp = new function () {
         btDelete.setAttribute("style", "display:none");
 
         oButton.setAttribute("style", "display:none;");
+    }
+
+    this.toggleCheckBoxes = function (checkbox) {
+
+        checkCells = document.getElementsByClassName("check")
+
+        Object.keys(checkCells).forEach(function (key) {
+            if (checkbox.checked) {
+                checkCells[key].setAttribute("style", "display:block;");
+            }
+            else {
+                checkCells[key].setAttribute("style", "display:none;");
+            }
+        });
+
+        minimalApp.scaleMainTable()
+    }
+
+    this.scaleMainTable = function () {
+
+        var table = document.getElementById("minimalTable");
+        var div = document.getElementById("minimal-table");
+
+        // scale contents to smallest window dimension and center
+        var scale = Math.min(
+            window.innerHeight / table.clientWidth,
+            window.innerWidth / table.clientWidth
+        );
+
+        table.style["transform"] = "scale(" + scale + ")";
+        table.style["transformOrigin"] = "0% 0%";
+
+        div.style.width = scale * table.clientWidth + "px";
+        div.style.margin = "auto";
     }
 
     this.loadFrontEnd = function () {

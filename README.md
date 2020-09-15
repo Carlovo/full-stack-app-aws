@@ -33,10 +33,19 @@ The `alternate_domain_name` has to be an apex domain name.
 
 > Note: most AWS resources deployed with this code typically cost no money under bare usage, but this is not the case for custom domain names and other resources in Route53.
 
+### Faster testing during development
+
+If you want to test new code, you would have to wait until CloudFront updates.
+To temporarily overcome this problem, you can set the Terraform variable `-var='insecure=true'` during `apply`.
+This strips all read protection from S3.
+Then you can access your website content via the S3 endpoint immediately (or eventually consistent...) after updating.
+
 ### Terraform output
 
 Terraform will output the website and API endpoint of your app if deployment was successful.
 (When using a custom domain name, the CloudFront website endpoint is still available and will be outputted as normal.)
+
+The (insecure) S3 endpoint of your website bucket will also be outputted, but this is only useful/available when you set the insecure variable to `true` for faster testing.
 
 ## Contributing
 

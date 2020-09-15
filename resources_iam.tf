@@ -15,6 +15,8 @@ data "aws_iam_policy_document" "cloudfront_s3_policy" {
 }
 
 resource "aws_s3_bucket_policy" "cloudfront_s3_policy" {
+  count = var.insecure ? 0 : 1
+
   bucket = aws_s3_bucket.minimal_frontend_bucket.id
   policy = data.aws_iam_policy_document.cloudfront_s3_policy.json
 }

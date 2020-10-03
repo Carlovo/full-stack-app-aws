@@ -33,7 +33,6 @@ var minimalApp = new function () {
 
         cbOptionsCheck = document.getElementById("Options-Check");
         cbOptionsCheck.disabled = false;
-        cbOptionsCheck.checked = false;
 
         for (var entryNumber = 0; entryNumber < tableEntries.length; entryNumber++) {
 
@@ -51,7 +50,11 @@ var minimalApp = new function () {
             cbCheck.setAttribute("type", "checkbox");
             cbCheck.checked = tableEntries[entryNumber]["check"];
             cbCheck.setAttribute("id", "Check-" + entryNumber);
-            checkCell.setAttribute("style", "display:none;");
+            if (cbOptionsCheck.checked) {
+                checkCell.setAttribute("style", "display:block;");
+            } else {
+                checkCell.setAttribute("style", "display:none;");
+            }
             checkCell.appendChild(cbCheck);
 
             var nameCell = tr.insertCell(-1);
@@ -104,7 +107,11 @@ var minimalApp = new function () {
         checkCell.setAttribute("class", "check");
         checkCell.innerHTML = "";
         checkCell.setAttribute("id", "Check-" + entryNumber);
-        checkCell.setAttribute("style", "display:none;");
+        if (cbOptionsCheck.checked) {
+            checkCell.setAttribute("style", "display:block;");
+        } else {
+            checkCell.setAttribute("style", "display:none;");
+        }
 
         // these are actual content
         var newCell = tr.insertCell(-1);

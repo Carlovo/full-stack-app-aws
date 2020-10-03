@@ -2,11 +2,38 @@ var apiUrl = "${api_url}"
 
 var minimalApp = new function () {
 
-    this.buildTable = function (jsonText) {
+    this.buildOptionsTable = function () {
+
+        var table = document.getElementById("optionsTable");
+        table.innerHTML = "";
+        table.style.margin = "24px 0px";
+
+        tr = table.insertRow(-1);
+
+        var checkOptionCell = tr.insertCell(-1);
+        checkOptionCell.innerHTML = "Checkboxes";
+
+        var checkCell = tr.insertCell(-1);
+
+        var cbCheck = document.createElement("input");
+        cbCheck.setAttribute("type", "checkbox");
+        cbCheck.setAttribute("id", "Options-Check");
+        cbCheck.disabled = true;
+        cbCheck.checked = false;
+        cbCheck.setAttribute("onclick", "minimalApp.toggleCheckBoxes(this)");
+        checkCell.appendChild(cbCheck);
+    }
+
+    this.buildMainTable = function (jsonText) {
 
         var tableEntries = JSON.parse(jsonText)
-        var table = document.createElement("table");
-        table.setAttribute("id", "minimalTable");
+
+        var table = document.getElementById("mainTable");
+        table.innerHTML = "";
+
+        cbOptionsCheck = document.getElementById("Options-Check");
+        cbOptionsCheck.disabled = false;
+        cbOptionsCheck.checked = false;
 
         for (var entryNumber = 0; entryNumber < tableEntries.length; entryNumber++) {
 
@@ -45,7 +72,7 @@ var minimalApp = new function () {
             btCancel.setAttribute("value", "Cancel");
             btCancel.setAttribute("id", "Cancel-" + entryNumber);
             btCancel.setAttribute("style", "display:none;");
-            btCancel.setAttribute("onclick", "minimalApp.loadFrontEnd()");
+            btCancel.setAttribute("onclick", "minimalApp.loadBuildMainTable()");
             updateCell.appendChild(btCancel);
 
             var btSave = document.createElement("input");
@@ -67,7 +94,7 @@ var minimalApp = new function () {
 
         tr = table.insertRow(-1);
 
-        // these are just a placeholder
+        // these are just placeholders
         var idCell = tr.insertCell(-1);
         idCell.innerHTML = "-";
         idCell.setAttribute("id", "Id-" + entryNumber);
@@ -97,42 +124,6 @@ var minimalApp = new function () {
         btNew.setAttribute("id", "Create-" + entryNumber);
         btNew.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
         createCell.appendChild(btNew);
-
-        tr = table.insertRow(-1);
-        var emptyCell = tr.insertCell(-1);
-        emptyCell.innerHTML = "&nbsp;"
-
-        tr = table.insertRow(-1);
-
-        // these are just a placeholder
-        var idCell = tr.insertCell(-1);
-        idCell.innerHTML = "-";
-        idCell.setAttribute("id", "Id-" + entryNumber + 1);
-        idCell.setAttribute("style", "display:none;");
-
-        var checkCell = tr.insertCell(-1);
-        checkCell.setAttribute("class", "check");
-        checkCell.innerHTML = "";
-        checkCell.setAttribute("id", "Check-" + entryNumber + 1);
-        checkCell.setAttribute("style", "display:none;");
-
-        // these are actual content
-        var checkOptionCell = tr.insertCell(-1);
-        checkOptionCell.innerHTML = "Checkboxes";
-
-        var checkCell = tr.insertCell(-1);
-
-        var cbCheck = document.createElement("input");
-        cbCheck.setAttribute("type", "checkbox");
-        cbCheck.checked = false;
-        cbCheck.setAttribute("onclick", "minimalApp.toggleCheckBoxes(this)");
-        checkCell.appendChild(cbCheck);
-
-        var div = document.getElementById("minimal-table");
-        div.innerHTML = "";
-        div.appendChild(table);
-
-        minimalApp.scaleMainTable()
     }
 
     this.updateBackEnd = function (oButton) {
@@ -149,7 +140,8 @@ var minimalApp = new function () {
 
                 if (this.readyState == 4 && this.status == 200) {
 
-                    minimalApp.buildTable(this.responseText)
+                    minimalApp.buildMainTable(this.responseText)
+                    minimalApp.scaleContent()
                 }
             }
 
@@ -212,28 +204,30 @@ var minimalApp = new function () {
             }
         });
 
-        minimalApp.scaleMainTable()
+        minimalApp.scaleContent()
     }
 
-    this.scaleMainTable = function () {
+    this.scaleContent = function () {
 
-        var table = document.getElementById("minimalTable");
-        var div = document.getElementById("minimal-table");
+        var containerDiv = document.getElementById("container");
+        var mainTable = document.getElementById("mainTable");
+
+        containerDiv.style["transform"] = "initial";
+        containerDiv.style["transformOrigin"] = "initial";
 
         // scale contents to smallest window dimension and center
         var scale = Math.min(
-            window.innerHeight / table.clientWidth,
-            window.innerWidth / table.clientWidth
+            window.innerHeight / mainTable.offsetWidth,
+            window.innerWidth / mainTable.offsetWidth
         );
 
-        table.style["transform"] = "scale(" + scale + ")";
-        table.style["transformOrigin"] = "0% 0%";
-
-        div.style.width = scale * table.clientWidth + "px";
-        div.style.margin = "auto";
+        containerDiv.style.width = mainTable.offsetWidth + "px";
+        containerDiv.style.margin = "auto";
+        containerDiv.style["transform"] = "scale(" + scale + ")";
+        containerDiv.style["transformOrigin"] = "center top";
     }
 
-    this.loadFrontEnd = function () {
+    this.loadBuildMainTable = function () {
 
         var xhttp = new XMLHttpRequest();
 
@@ -241,7 +235,8 @@ var minimalApp = new function () {
 
             if (this.readyState == 4 && this.status == 200) {
 
-                minimalApp.buildTable(this.responseText)
+                minimalApp.buildMainTable(this.responseText);
+                minimalApp.scaleContent();
             }
         }
 
@@ -250,4 +245,5 @@ var minimalApp = new function () {
     }
 }
 
-minimalApp.loadFrontEnd()
+minimalApp.buildOptionsTable();
+minimalApp.loadBuildMainTable();

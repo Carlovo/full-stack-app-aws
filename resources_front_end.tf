@@ -6,9 +6,10 @@ resource "aws_s3_bucket" "minimal_frontend_bucket" {
 resource "aws_s3_bucket_object" "minimal_index" {
   bucket       = aws_s3_bucket.minimal_frontend_bucket.id
   key          = "index.html"
-  source       = "./resources_front_end/index.html"
   content_type = "text/html"
   acl          = var.insecure ? "public-read" : "private"
+
+  content = file("./resources_front_end/index.html")
 }
 
 resource "aws_s3_bucket_object" "minimal_script" {

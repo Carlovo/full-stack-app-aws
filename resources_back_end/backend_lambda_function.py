@@ -68,7 +68,6 @@ def lambda_handler(event, context):
             database_adapter.delete_item(item_id=request["id"])
         # there are multiple actions in the front end that can update the table
         elif request["operation"] == "Save":
-            request["check"] = False
             database_adapter.update_item(
                 item_id=request["id"],
                 item_name=request["name"],

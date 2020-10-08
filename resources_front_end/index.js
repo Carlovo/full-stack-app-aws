@@ -1,14 +1,19 @@
-var apiUrl = "${api_url}"
+"use strict";
+
+var mainTable = document.getElementById("mainTable");
+var optionsTable = document.getElementById("optionsTable");
+
+var tableEntries = [];
+var apiUrl = "${api_url}";
 
 var minimalApp = new function () {
 
     this.buildOptionsTable = function () {
 
-        var table = document.getElementById("optionsTable");
-        table.innerHTML = "";
-        table.style.margin = "24px 0px";
+        optionsTable.innerHTML = "";
+        optionsTable.style.margin = "24px 0px";
 
-        tr = table.insertRow(-1);
+        var tr = optionsTable.insertRow(-1);
 
         var checkOptionCell = tr.insertCell(-1);
         checkOptionCell.innerHTML = "Checkboxes";
@@ -23,7 +28,7 @@ var minimalApp = new function () {
         cbCheck.setAttribute("onclick", "minimalApp.toggleCheckBoxes(this)");
         checkCell.appendChild(cbCheck);
 
-        tr = table.insertRow(-1);
+        tr = optionsTable.insertRow(-1);
 
         var onlineOptionCell = tr.insertCell(-1);
         onlineOptionCell.innerHTML = "Online";
@@ -37,84 +42,72 @@ var minimalApp = new function () {
         cbOnline.checked = true;
         cbOnline.setAttribute("onclick", "minimalApp.loadBuildMainTable()");
         checkCell.appendChild(cbOnline);
-    }
+    };
 
-    this.buildMainTable = function (jsonText) {
+    this.appendStandardButton = function (parent, value, entryNumber, onclick) {
 
-        var tableEntries = JSON.parse(jsonText)
+        var standardButton = document.createElement("input");
+        standardButton.setAttribute("type", "button");
+        standardButton.setAttribute("value", value);
+        standardButton.setAttribute("id", value + "-" + entryNumber);
+        standardButton.setAttribute("onclick", onclick);
+        parent.appendChild(standardButton);
+    };
 
-        var table = document.getElementById("mainTable");
-        table.innerHTML = "";
+    this.appendItemRow = function (entryNumber) {
 
-        cbOptionsCheck = document.getElementById("Options-Check");
-        cbOptionsCheck.disabled = false;
-        cbOptionsOnline = document.getElementById("Options-Online");
-        cbOptionsOnline.disabled = false;
+        var tr = mainTable.insertRow(-1);
+        tr.setAttribute("id", "tr-" + entryNumber);
 
-        for (var entryNumber = 0; entryNumber < tableEntries.length; entryNumber++) {
+        var idCell = tr.insertCell(-1);
+        idCell.innerHTML = tableEntries[entryNumber]["id"];
+        idCell.setAttribute("id", "Id-" + entryNumber);
+        idCell.setAttribute("style", "display:none;");
 
-            tr = table.insertRow(-1);
-            tr.setAttribute("id", "tr-" + entryNumber);
+        var checkCell = tr.insertCell(-1);
 
-            var idCell = tr.insertCell(-1);
-            idCell.innerHTML = tableEntries[entryNumber]["id"];
-            idCell.setAttribute("id", "Id-" + entryNumber);
-            idCell.setAttribute("style", "display:none;");
+        var cbCheck = document.createElement("input");
+        checkCell.setAttribute("class", "check");
+        cbCheck.setAttribute("type", "checkbox");
+        cbCheck.checked = tableEntries[entryNumber]["check"];
+        cbCheck.setAttribute("id", "Check-" + entryNumber);
+        cbCheck.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
+        var cbOptionsCheck = document.getElementById("Options-Check");
+        if (cbOptionsCheck.checked) {
+            checkCell.setAttribute("style", "display:block;");
+        } else {
+            checkCell.setAttribute("style", "display:none;");
+        };
+        checkCell.appendChild(cbCheck);
 
-            var checkCell = tr.insertCell(-1);
+        var nameCell = tr.insertCell(-1);
+        nameCell.innerHTML = tableEntries[entryNumber]["name"];
+        nameCell.setAttribute("id", "Name-" + entryNumber);
 
-            var cbCheck = document.createElement("input");
-            checkCell.setAttribute("class", "check");
-            cbCheck.setAttribute("type", "checkbox");
-            cbCheck.checked = tableEntries[entryNumber]["check"];
-            cbCheck.setAttribute("id", "Check-" + entryNumber);
-            if (cbOptionsCheck.checked) {
-                checkCell.setAttribute("style", "display:block;");
-            } else {
-                checkCell.setAttribute("style", "display:none;");
-            }
-            cbCheck.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
-            checkCell.appendChild(cbCheck);
+        var updateCell = tr.insertCell(-1);
 
-            var nameCell = tr.insertCell(-1);
-            nameCell.innerHTML = tableEntries[entryNumber]["name"];
-            nameCell.setAttribute("id", "Name-" + entryNumber);
+        minimalApp.appendStandardButton(
+            updateCell, "Update", entryNumber, "minimalApp.editItem(this)"
+        );
+        minimalApp.appendStandardButton(
+            updateCell, "Cancel", entryNumber, "minimalApp.cancelEditName(this)"
+        );
+        minimalApp.appendStandardButton(
+            updateCell, "Save", entryNumber, "minimalApp.updateBackEnd(this)"
+        );
 
-            var updateCell = tr.insertCell(-1);
+        var deleteCell = tr.insertCell(-1);
 
-            var btUpdate = document.createElement("input");
-            btUpdate.setAttribute("type", "button");
-            btUpdate.setAttribute("value", "Update");
-            btUpdate.setAttribute("id", "Update-" + entryNumber);
-            btUpdate.setAttribute("onclick", "minimalApp.editItem(this)");
-            updateCell.appendChild(btUpdate);
+        minimalApp.appendStandardButton(
+            deleteCell, "Delete", entryNumber, "minimalApp.updateBackEnd(this)"
+        );
 
-            var btCancel = document.createElement("input");
-            btCancel.setAttribute("type", "button");
-            btCancel.setAttribute("value", "Cancel");
-            btCancel.setAttribute("id", "Cancel-" + entryNumber);
-            btCancel.setAttribute("style", "display:none;");
-            btCancel.setAttribute("onclick", "minimalApp.loadBuildMainTable()");
-            updateCell.appendChild(btCancel);
+        minimalApp.toggleEditItemButtons(entryNumber, false);
+    };
 
-            var btSave = document.createElement("input");
-            btSave.setAttribute("type", "button");
-            btSave.setAttribute("value", "Save");
-            btSave.setAttribute("id", "Save-" + entryNumber);
-            btSave.setAttribute("style", "display:none;");
-            btSave.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
-            updateCell.appendChild(btSave);
+    this.appendCreateRow = function (entryNumber) {
 
-            var deleteCell = tr.insertCell(-1);
-            var btDelete = document.createElement("input");
-            btDelete.setAttribute("type", "button");
-            btDelete.setAttribute("value", "Delete");
-            btDelete.setAttribute("id", "Delete-" + entryNumber);
-            btDelete.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
-            deleteCell.appendChild(btDelete);
-        }
-
-        tr = table.insertRow(-1);
+        var tr = mainTable.insertRow(-1);
 
         // these are just placeholders
         var idCell = tr.insertCell(-1);
@@ -124,13 +117,13 @@ var minimalApp = new function () {
 
         var checkCell = tr.insertCell(-1);
         checkCell.setAttribute("class", "check");
-        checkCell.innerHTML = "";
         checkCell.setAttribute("id", "Check-" + entryNumber);
+        var cbOptionsCheck = document.getElementById("Options-Check");
         if (cbOptionsCheck.checked) {
             checkCell.setAttribute("style", "display:block;");
         } else {
             checkCell.setAttribute("style", "display:none;");
-        }
+        };
 
         // these are actual content
         var newCell = tr.insertCell(-1);
@@ -139,109 +132,146 @@ var minimalApp = new function () {
         var tBox = document.createElement("input");
         tBox.setAttribute("type", "text");
         tBox.setAttribute("value", "");
-        tBox.setAttribute("style", "touch-action: none")
+        tBox.setAttribute("style", "touch-action: none");
 
         newCell.appendChild(tBox);
 
         var createCell = tr.insertCell(-1);
-        var btNew = document.createElement("input");
-        btNew.setAttribute("type", "button");
-        btNew.setAttribute("value", "Create");
-        btNew.setAttribute("id", "Create-" + entryNumber);
-        btNew.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
-        createCell.appendChild(btNew);
-    }
+
+        minimalApp.appendStandardButton(
+            createCell, "Create", entryNumber, "minimalApp.updateBackEnd(this)"
+        );
+    };
+
+    this.buildMainTable = function () {
+
+        mainTable.innerHTML = "";
+
+        var cbOptionsCheck = document.getElementById("Options-Check");
+        cbOptionsCheck.disabled = false;
+        var cbOptionsOnline = document.getElementById("Options-Online");
+        cbOptionsOnline.disabled = false;
+
+        for (var entryNumber = 0; entryNumber < tableEntries.length; entryNumber++) {
+
+            minimalApp.appendItemRow(entryNumber);
+        };
+
+        minimalApp.appendCreateRow(entryNumber);
+    };
 
     this.updateBackEnd = function (inputElement) {
 
-        cbOptionsOnline = document.getElementById("Options-Online");
+        var activeRow = inputElement.id.split("-")[1];
+
+        var cbOptionsOnline = document.getElementById("Options-Online");
 
         if (cbOptionsOnline.checked) {
 
-            var activeRow = inputElement.id.split("-")[1];
             var idCell = document.getElementById("Id-" + activeRow);
-            var nameCell = document.getElementById("Name-" + activeRow);
 
-            if (nameCell.childNodes[0].value != "") {
+            var payloadDict = { "id": idCell.innerHTML };
 
-                var xhttp = new XMLHttpRequest();
+            if (inputElement.value == "Delete") {
 
-                xhttp.onreadystatechange = function () {
+                payloadDict["operation"] = "Delete";
+            } else {
 
-                    if (this.readyState == 4 && this.status == 200) {
-
-                        minimalApp.buildMainTable(this.responseText)
-                        minimalApp.scaleContent()
-                    }
-                }
-
-                xhttp.open("POST", apiUrl, true);
+                nameCell = document.getElementById("Name-" + activeRow);
 
                 if (inputElement.type == "checkbox") {
 
-                    payload = JSON.stringify({
-                        "operation": "Save",
-                        "id": idCell.innerHTML,
-                        "name": nameCell.innerHTML,
-                        "check": inputElement.checked
-                    })
+                    payloadDict["operation"] = "Save";
+                    payloadDict["name"] = nameCell.innerHTML;
+                    payloadDict["check"] = inputElement.checked;
                 } else {
 
-                    var cbCheck = document.getElementById("Check-" + activeRow);
+                    if (nameCell.childNodes[0].value == "") {
 
-                    payload = JSON.stringify({
-                        "operation": inputElement.value,
-                        "id": idCell.innerHTML,
-                        "name": nameCell.childNodes[0].value,
-                        "check": cbCheck.checked
-                    })
-                }
+                        alert("input field may not be empty");
+                        return;
+                    } else {
 
-                xhttp.send(payload);
+                        var cbCheck = document.getElementById("Check-" + activeRow);
 
-                var inputElements = document.getElementsByTagName("input");
+                        // Default to Create / Save (Name)
+                        payloadDict["operation"] = inputElement.value;
+                        payloadDict["name"] = nameCell.childNodes[0].value;
+                        payloadDict["check"] = cbCheck.checked;
+                    };
+                };
+            };
 
-                Object.keys(inputElements).forEach(function (key) {
-                    inputElements[key].disabled = true;
-                });
-            }
-            else {
+            var payloadText = JSON.stringify(payloadDict);
 
-                alert("input field may not be empty");
-            }
+            minimalApp.xhttpBackEnd(payloadText);
         } else {
 
             if (inputElement.value == "Delete") {
 
-                var activeRow = inputElement.id.split("-")[1];
-
                 var activeTr = document.getElementById("tr-" + activeRow);
                 activeTr.setAttribute("style", "display:none;");
-            }
+            };
 
-            if (inputElement.value == "Save") {
-
-                var activeRow = inputElement.id.split("-")[1];
+            if (inputElement.value == "Create" || inputElement.value == "Save") {
 
                 var nameCell = document.getElementById("Name-" + activeRow);
-                nameCell.innerHTML = nameCell.childNodes[0].value;
 
-                inputElement.setAttribute("style", "display:none");
+                if (nameCell.childNodes[0].value == "") {
 
-                var btCancel = document.getElementById("Cancel-" + activeRow);
-                btCancel.setAttribute("style", "display:none");
+                    alert("input field may not be empty");
+                } else {
 
-                var btUpdate = document.getElementById("Update-" + activeRow);
-                btUpdate.setAttribute("style", "display:block");
+                    if (inputElement.value == "Create") {
 
-                var cbCheck = document.getElementById("Check-" + activeRow);
-                cbCheck.setAttribute("style", "display:block");
+                        tableEntries.push({
+                            "id": activeRow,
+                            "name": nameCell.childNodes[0].value,
+                            "check": false
+                        });
 
-                var btDelete = document.getElementById("Delete-" + activeRow);
-                btDelete.setAttribute("style", "display:block");
-            }
-        }
-    }
+                        mainTable.deleteRow(-1);
+
+                        var entryNumber = Number(activeRow);
+
+                        minimalApp.appendItemRow(entryNumber);
+                        minimalApp.appendCreateRow(entryNumber + 1);
+                    } else {
+
+                        nameCell.innerHTML = nameCell.childNodes[0].value;
+
+                        minimalApp.toggleEditItemButtons(activeRow, false);
+                    };
+                };
+            };
+        };
+    };
+
+    this.xhttpBackEnd = function (payload) {
+
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onreadystatechange = function () {
+
+            if (this.readyState == 4 && this.status == 200) {
+
+                tableEntries = JSON.parse(this.responseText);
+
+                minimalApp.buildMainTable();
+                minimalApp.scaleContent();
+            };
+        };
+
+        xhttp.open("POST", apiUrl, true);
+
+        xhttp.send(payload);
+
+        var inputElements = document.getElementsByTagName("input");
+
+        Object.keys(inputElements).forEach(function (key) {
+            inputElements[key].disabled = true;
+        });
+    };
 
     this.editItem = function (oButton) {
 
@@ -251,28 +281,51 @@ var minimalApp = new function () {
         var inputBox = document.createElement("input");
         inputBox.setAttribute("type", "text");
         inputBox.setAttribute("value", nameCell.innerText);
-        inputBox.setAttribute("style", "touch-action: none")
+        inputBox.setAttribute("style", "touch-action: none");
         nameCell.innerText = "";
         nameCell.appendChild(inputBox);
 
-        var btCancel = document.getElementById("Cancel-" + activeRow);
-        btCancel.setAttribute("style", "display:block");
+        minimalApp.toggleEditItemButtons(activeRow, true);
+    };
 
-        var btSave = document.getElementById("Save-" + activeRow);
-        btSave.setAttribute("style", "display:block");
+    this.cancelEditName = function (oButton) {
+
+        var activeRow = oButton.id.split("-")[1];
+
+        var nameCell = document.getElementById("Name-" + activeRow);
+        nameCell.innerHTML = tableEntries[activeRow]["name"];
+
+        minimalApp.toggleEditItemButtons(activeRow, false);
+    };
+
+    this.toggleEditItemButtons = function (activeRow, editMode) {
+
+        if (editMode) {
+
+            var nameEditDisplay = "block";
+            var optionsDisplay = "none";
+        } else {
+
+            var nameEditDisplay = "none";
+            var optionsDisplay = "block";
+        };
 
         var cbCheck = document.getElementById("Check-" + activeRow);
-        cbCheck.setAttribute("style", "display:none");
-
+        cbCheck.setAttribute("style", "display:" + optionsDisplay);
+        var btUpdate = document.getElementById("Update-" + activeRow);
+        btUpdate.setAttribute("style", "display:" + optionsDisplay);
         var btDelete = document.getElementById("Delete-" + activeRow);
-        btDelete.setAttribute("style", "display:none");
+        btDelete.setAttribute("style", "display:" + optionsDisplay);
 
-        oButton.setAttribute("style", "display:none;");
+        var btCancel = document.getElementById("Cancel-" + activeRow);
+        btCancel.setAttribute("style", "display:" + nameEditDisplay);
+        var btUpdate = document.getElementById("Save-" + activeRow);
+        btUpdate.setAttribute("style", "display:" + nameEditDisplay);
     }
 
     this.toggleCheckBoxes = function (checkbox) {
 
-        checkCells = document.getElementsByClassName("check")
+        var checkCells = document.getElementsByClassName("check");
 
         Object.keys(checkCells).forEach(function (key) {
             if (checkbox.checked) {
@@ -280,11 +333,11 @@ var minimalApp = new function () {
             }
             else {
                 checkCells[key].setAttribute("style", "display:none;");
-            }
+            };
         });
 
-        minimalApp.scaleContent()
-    }
+        minimalApp.scaleContent();
+    };
 
     this.scaleContent = function () {
 
@@ -304,7 +357,7 @@ var minimalApp = new function () {
         containerDiv.style.margin = "auto";
         containerDiv.style["transform"] = "scale(" + scale + ")";
         containerDiv.style["transformOrigin"] = "center top";
-    }
+    };
 
     this.loadBuildMainTable = function () {
 
@@ -314,15 +367,17 @@ var minimalApp = new function () {
 
             if (this.readyState == 4 && this.status == 200) {
 
-                minimalApp.buildMainTable(this.responseText);
+                tableEntries = JSON.parse(this.responseText);
+
+                minimalApp.buildMainTable();
                 minimalApp.scaleContent();
-            }
-        }
+            };
+        };
 
         xhttp.open("GET", apiUrl, true);
         xhttp.send();
-    }
-}
+    };
+};
 
 minimalApp.buildOptionsTable();
 minimalApp.loadBuildMainTable();

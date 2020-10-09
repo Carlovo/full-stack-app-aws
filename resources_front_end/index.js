@@ -8,55 +8,32 @@ var apiUrl = "${api_url}";
 
 var minimalApp = new function () {
 
+    this.appendOptionRow = function (innerHTML, checked, onclick) {
+
+        var tr = optionsTable.insertRow(-1);
+
+        var optionLabelCell = tr.insertCell(-1);
+        optionLabelCell.innerHTML = innerHTML;
+
+        var checkCell = tr.insertCell(-1);
+
+        var optionCheckbox = document.createElement("input");
+        optionCheckbox.setAttribute("type", "checkbox");
+        optionCheckbox.setAttribute("id", "Options-" + innerHTML);
+        optionCheckbox.disabled = true;
+        optionCheckbox.checked = checked;
+        optionCheckbox.setAttribute("onclick", onclick);
+        checkCell.appendChild(optionCheckbox);
+    };
+
     this.buildOptionsTable = function () {
 
         optionsTable.innerHTML = "";
         optionsTable.style.margin = "24px 0px";
 
-        var tr = optionsTable.insertRow(-1);
-
-        var checkOptionCell = tr.insertCell(-1);
-        checkOptionCell.innerHTML = "Checkboxes";
-
-        var checkCell = tr.insertCell(-1);
-
-        var cbCheck = document.createElement("input");
-        cbCheck.setAttribute("type", "checkbox");
-        cbCheck.setAttribute("id", "Options-Check");
-        cbCheck.disabled = true;
-        cbCheck.checked = false;
-        cbCheck.setAttribute("onclick", "minimalApp.buildMainTable()");
-        checkCell.appendChild(cbCheck);
-
-        tr = optionsTable.insertRow(-1);
-
-        var crudOptionCell = tr.insertCell(-1);
-        crudOptionCell.innerHTML = "CRUD";
-
-        var checkCell = tr.insertCell(-1);
-
-        var cbCheck = document.createElement("input");
-        cbCheck.setAttribute("type", "checkbox");
-        cbCheck.setAttribute("id", "Options-Crud");
-        cbCheck.disabled = true;
-        cbCheck.checked = true;
-        cbCheck.setAttribute("onclick", "minimalApp.buildMainTable()");
-        checkCell.appendChild(cbCheck);
-
-        tr = optionsTable.insertRow(-1);
-
-        var onlineOptionCell = tr.insertCell(-1);
-        onlineOptionCell.innerHTML = "Online";
-
-        var checkCell = tr.insertCell(-1);
-
-        var cbOnline = document.createElement("input");
-        cbOnline.setAttribute("type", "checkbox");
-        cbOnline.setAttribute("id", "Options-Online");
-        cbOnline.disabled = true;
-        cbOnline.checked = true;
-        cbOnline.setAttribute("onclick", "minimalApp.loadBuildMainTable()");
-        checkCell.appendChild(cbOnline);
+        minimalApp.appendOptionRow("Checkboxes", false, "minimalApp.buildMainTable()");
+        minimalApp.appendOptionRow("CRUD", true, "minimalApp.buildMainTable()");
+        minimalApp.appendOptionRow("Online", true, "minimalApp.loadBuildMainTable()");
     };
 
     this.appendStandardButton = function (parent, value, entryNumber, onclick) {
@@ -79,7 +56,7 @@ var minimalApp = new function () {
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
 
-        var cbOptionsCheck = document.getElementById("Options-Check");
+        var cbOptionsCheck = document.getElementById("Options-Checkboxes");
 
         if (cbOptionsCheck.checked) {
 
@@ -98,7 +75,7 @@ var minimalApp = new function () {
         nameCell.innerHTML = tableEntries[entryNumber]["name"];
         nameCell.setAttribute("id", "Name-" + entryNumber);
 
-        var cbOptionsCrud = document.getElementById("Options-Crud");
+        var cbOptionsCrud = document.getElementById("Options-CRUD");
 
         if (cbOptionsCrud.checked) {
 
@@ -134,7 +111,7 @@ var minimalApp = new function () {
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
 
-        var cbOptionsCheck = document.getElementById("Options-Check");
+        var cbOptionsCheck = document.getElementById("Options-Checkboxes");
 
         if (cbOptionsCheck.checked) {
 
@@ -168,9 +145,9 @@ var minimalApp = new function () {
 
         mainTable.innerHTML = "";
 
-        var cbOptionsCheck = document.getElementById("Options-Check");
+        var cbOptionsCheck = document.getElementById("Options-Checkboxes");
         cbOptionsCheck.disabled = false;
-        var cbOptionsCrud = document.getElementById("Options-Crud");
+        var cbOptionsCrud = document.getElementById("Options-CRUD");
         cbOptionsCrud.disabled = false;
         var cbOptionsOnline = document.getElementById("Options-Online");
         cbOptionsOnline.disabled = false;
@@ -336,7 +313,7 @@ var minimalApp = new function () {
             var optionsDisplay = "block";
         };
 
-        var cbOptionsCheck = document.getElementById("Options-Check");
+        var cbOptionsCheck = document.getElementById("Options-Checkboxes");
 
         if (cbOptionsCheck.checked) {
 
@@ -344,7 +321,7 @@ var minimalApp = new function () {
             cbCheck.setAttribute("style", "display:" + optionsDisplay);
         };
 
-        var cbOptionsCrud = document.getElementById("Options-Crud");
+        var cbOptionsCrud = document.getElementById("Options-CRUD");
 
         if (cbOptionsCrud.checked) {
 

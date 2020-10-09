@@ -25,7 +25,22 @@ var minimalApp = new function () {
         cbCheck.setAttribute("id", "Options-Check");
         cbCheck.disabled = true;
         cbCheck.checked = false;
-        cbCheck.setAttribute("onclick", "minimalApp.toggleCheckBoxes(this)");
+        cbCheck.setAttribute("onclick", "minimalApp.buildMainTable()");
+        checkCell.appendChild(cbCheck);
+
+        tr = optionsTable.insertRow(-1);
+
+        var crudOptionCell = tr.insertCell(-1);
+        crudOptionCell.innerHTML = "CRUD";
+
+        var checkCell = tr.insertCell(-1);
+
+        var cbCheck = document.createElement("input");
+        cbCheck.setAttribute("type", "checkbox");
+        cbCheck.setAttribute("id", "Options-Crud");
+        cbCheck.disabled = true;
+        cbCheck.checked = true;
+        cbCheck.setAttribute("onclick", "minimalApp.buildMainTable()");
         checkCell.appendChild(cbCheck);
 
         tr = optionsTable.insertRow(-1);
@@ -64,45 +79,49 @@ var minimalApp = new function () {
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
 
-        var checkCell = tr.insertCell(-1);
-
-        var cbCheck = document.createElement("input");
-        checkCell.setAttribute("class", "check");
-        cbCheck.setAttribute("type", "checkbox");
-        cbCheck.checked = tableEntries[entryNumber]["check"];
-        cbCheck.setAttribute("id", "Check-" + entryNumber);
-        cbCheck.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
         var cbOptionsCheck = document.getElementById("Options-Check");
+
         if (cbOptionsCheck.checked) {
-            checkCell.setAttribute("style", "display:block;");
-        } else {
-            checkCell.setAttribute("style", "display:none;");
+
+            var checkCell = tr.insertCell(-1);
+
+            var cbCheck = document.createElement("input");
+            checkCell.setAttribute("class", "check");
+            cbCheck.setAttribute("type", "checkbox");
+            cbCheck.checked = tableEntries[entryNumber]["check"];
+            cbCheck.setAttribute("id", "Check-" + entryNumber);
+            cbCheck.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
+            checkCell.appendChild(cbCheck);
         };
-        checkCell.appendChild(cbCheck);
 
         var nameCell = tr.insertCell(-1);
         nameCell.innerHTML = tableEntries[entryNumber]["name"];
         nameCell.setAttribute("id", "Name-" + entryNumber);
 
-        var updateCell = tr.insertCell(-1);
+        var cbOptionsCrud = document.getElementById("Options-Crud");
 
-        minimalApp.appendStandardButton(
-            updateCell, "Update", entryNumber, "minimalApp.editItem(this)"
-        );
-        minimalApp.appendStandardButton(
-            updateCell, "Cancel", entryNumber, "minimalApp.cancelEditName(this)"
-        );
-        minimalApp.appendStandardButton(
-            updateCell, "Save", entryNumber, "minimalApp.updateBackEnd(this)"
-        );
+        if (cbOptionsCrud.checked) {
 
-        var deleteCell = tr.insertCell(-1);
+            var updateCell = tr.insertCell(-1);
 
-        minimalApp.appendStandardButton(
-            deleteCell, "Delete", entryNumber, "minimalApp.updateBackEnd(this)"
-        );
+            minimalApp.appendStandardButton(
+                updateCell, "Update", entryNumber, "minimalApp.editItem(this)"
+            );
+            minimalApp.appendStandardButton(
+                updateCell, "Cancel", entryNumber, "minimalApp.cancelEditName(this)"
+            );
+            minimalApp.appendStandardButton(
+                updateCell, "Save", entryNumber, "minimalApp.updateBackEnd(this)"
+            );
 
-        minimalApp.toggleEditItemButtons(entryNumber, false);
+            var deleteCell = tr.insertCell(-1);
+
+            minimalApp.appendStandardButton(
+                deleteCell, "Delete", entryNumber, "minimalApp.updateBackEnd(this)"
+            );
+
+            minimalApp.toggleEditItemButtons(entryNumber, false);
+        };
     };
 
     this.appendCreateRow = function (entryNumber) {
@@ -115,14 +134,13 @@ var minimalApp = new function () {
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
 
-        var checkCell = tr.insertCell(-1);
-        checkCell.setAttribute("class", "check");
-        checkCell.setAttribute("id", "Check-" + entryNumber);
         var cbOptionsCheck = document.getElementById("Options-Check");
+
         if (cbOptionsCheck.checked) {
-            checkCell.setAttribute("style", "display:block;");
-        } else {
-            checkCell.setAttribute("style", "display:none;");
+
+            var checkCell = tr.insertCell(-1);
+            checkCell.setAttribute("class", "check");
+            checkCell.setAttribute("id", "Check-" + entryNumber);
         };
 
         // these are actual content
@@ -141,6 +159,9 @@ var minimalApp = new function () {
         minimalApp.appendStandardButton(
             createCell, "Create", entryNumber, "minimalApp.updateBackEnd(this)"
         );
+
+        // another placeholder
+        tr.insertCell(-1);
     };
 
     this.buildMainTable = function () {
@@ -149,6 +170,8 @@ var minimalApp = new function () {
 
         var cbOptionsCheck = document.getElementById("Options-Check");
         cbOptionsCheck.disabled = false;
+        var cbOptionsCrud = document.getElementById("Options-Crud");
+        cbOptionsCrud.disabled = false;
         var cbOptionsOnline = document.getElementById("Options-Online");
         cbOptionsOnline.disabled = false;
 
@@ -157,7 +180,11 @@ var minimalApp = new function () {
             minimalApp.appendItemRow(entryNumber);
         };
 
-        minimalApp.appendCreateRow(entryNumber);
+        if (cbOptionsCrud.checked) {
+            minimalApp.appendCreateRow(entryNumber);
+        };
+
+        minimalApp.scaleContent();
     };
 
     this.updateBackEnd = function (inputElement) {
@@ -258,7 +285,6 @@ var minimalApp = new function () {
                 tableEntries = JSON.parse(this.responseText);
 
                 minimalApp.buildMainTable();
-                minimalApp.scaleContent();
             };
         };
 
@@ -310,33 +336,28 @@ var minimalApp = new function () {
             var optionsDisplay = "block";
         };
 
-        var cbCheck = document.getElementById("Check-" + activeRow);
-        cbCheck.setAttribute("style", "display:" + optionsDisplay);
-        var btUpdate = document.getElementById("Update-" + activeRow);
-        btUpdate.setAttribute("style", "display:" + optionsDisplay);
-        var btDelete = document.getElementById("Delete-" + activeRow);
-        btDelete.setAttribute("style", "display:" + optionsDisplay);
+        var cbOptionsCheck = document.getElementById("Options-Check");
 
-        var btCancel = document.getElementById("Cancel-" + activeRow);
-        btCancel.setAttribute("style", "display:" + nameEditDisplay);
-        var btUpdate = document.getElementById("Save-" + activeRow);
-        btUpdate.setAttribute("style", "display:" + nameEditDisplay);
-    }
+        if (cbOptionsCheck.checked) {
 
-    this.toggleCheckBoxes = function (checkbox) {
+            var cbCheck = document.getElementById("Check-" + activeRow);
+            cbCheck.setAttribute("style", "display:" + optionsDisplay);
+        };
 
-        var checkCells = document.getElementsByClassName("check");
+        var cbOptionsCrud = document.getElementById("Options-Crud");
 
-        Object.keys(checkCells).forEach(function (key) {
-            if (checkbox.checked) {
-                checkCells[key].setAttribute("style", "display:block;");
-            }
-            else {
-                checkCells[key].setAttribute("style", "display:none;");
-            };
-        });
+        if (cbOptionsCrud.checked) {
 
-        minimalApp.scaleContent();
+            var btUpdate = document.getElementById("Update-" + activeRow);
+            btUpdate.setAttribute("style", "display:" + optionsDisplay);
+            var btDelete = document.getElementById("Delete-" + activeRow);
+            btDelete.setAttribute("style", "display:" + optionsDisplay);
+
+            var btCancel = document.getElementById("Cancel-" + activeRow);
+            btCancel.setAttribute("style", "display:" + nameEditDisplay);
+            var btSave = document.getElementById("Save-" + activeRow);
+            btSave.setAttribute("style", "display:" + nameEditDisplay);
+        };
     };
 
     this.scaleContent = function () {
@@ -370,7 +391,6 @@ var minimalApp = new function () {
                 tableEntries = JSON.parse(this.responseText);
 
                 minimalApp.buildMainTable();
-                minimalApp.scaleContent();
             };
         };
 

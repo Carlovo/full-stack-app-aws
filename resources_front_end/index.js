@@ -298,6 +298,7 @@ var minimalApp = new function () {
             if (this.readyState == 4 && this.status == 200) {
 
                 tableEntries = JSON.parse(this.responseText);
+                tableEntries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
                 minimalApp.buildMainTable();
             };
@@ -404,6 +405,7 @@ var minimalApp = new function () {
             if (this.readyState == 4 && this.status == 200) {
 
                 tableEntries = JSON.parse(this.responseText);
+                tableEntries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
                 minimalApp.buildMainTable();
             };

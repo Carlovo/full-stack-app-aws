@@ -246,46 +246,44 @@ var minimalApp = new function () {
             minimalApp.xhttpBackEnd(payloadText);
         } else {
 
-            if (inputElement.value == "Delete") {
+            if (inputElement.type == "checkbox") {
 
-                var activeTr = document.getElementById("tr-" + activeRow);
-                activeTr.setAttribute("style", "display:none;");
-            };
+                tableEntries[activeRow]["check"] = inputElement.checked;
+            } else {
 
-            if (inputElement.value == "Create" || inputElement.value == "Save") {
+                if (inputElement.value == "Delete") {
 
-                var nameCell = document.getElementById("Name-" + activeRow);
+                    tableEntries.splice(activeRow, 1);
+                };
 
-                if (nameCell.childNodes[0].value == "") {
+                if (inputElement.value == "Create" || inputElement.value == "Save") {
 
-                    alert("input field may not be empty");
-                } else {
+                    var nameCell = document.getElementById("Name-" + activeRow);
 
-                    if (inputElement.value == "Create") {
+                    if (nameCell.childNodes[0].value == "") {
 
-                        var customTimestamp = minimalApp.createCustomTimestamp();
-
-                        tableEntries.push({
-                            "id": activeRow,
-                            "name": nameCell.childNodes[0].value,
-                            "check": false,
-                            "timestamp": customTimestamp
-                        });
-
-                        mainTable.deleteRow(-1);
-
-                        var entryNumber = Number(activeRow);
-
-                        minimalApp.appendItemRow(entryNumber);
-                        minimalApp.appendCreateRow(entryNumber + 1);
+                        alert("input field may not be empty");
                     } else {
 
-                        nameCell.innerHTML = nameCell.childNodes[0].value;
+                        if (inputElement.value == "Create") {
 
-                        minimalApp.toggleEditItemButtons(activeRow, false);
+                            var customTimestamp = minimalApp.createCustomTimestamp();
+
+                            tableEntries.push({
+                                "id": activeRow,
+                                "name": nameCell.childNodes[0].value,
+                                "check": false,
+                                "timestamp": customTimestamp
+                            });
+                        } else {
+
+                            tableEntries[activeRow]["name"] = nameCell.childNodes[0].value;
+                        };
                     };
                 };
             };
+
+            minimalApp.buildMainTable();
         };
     };
 

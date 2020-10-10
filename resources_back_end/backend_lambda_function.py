@@ -13,13 +13,14 @@ class DatabaseAdapter:
     def scan_database(self):
         return self.db_client.scan(TableName=self.db_name)
 
-    def put_item(self, item_id: str, item_name: str):
+    def put_item(self, item_id: str, item_name: str, item_timestamp: str):
         self.db_client.put_item(
             TableName=self.db_name,
             Item={
                 "id": {"S": item_id},
                 "name": {"S": item_name},
-                "check": {"BOOL": False}
+                "check": {"BOOL": False},
+                "timestamp": {"S": item_timestamp}
             }
         )
 
@@ -79,6 +80,7 @@ def lambda_handler(event, context):
             database_adapter.put_item(
                 item_id=new_id,
                 item_name=request["name"],
+                item_timestamp=request["timestamp"],
             )
 
         database_scan = database_adapter.scan_database()
@@ -87,7 +89,8 @@ def lambda_handler(event, context):
         {
             "id": item["id"]["S"],
             "name": item["name"]["S"],
-            "check": item["check"]["BOOL"]
+            "check": item["check"]["BOOL"],
+            "timestamp": item["timestamp"]["S"]
         }
         for item in database_scan["Items"]
     ]

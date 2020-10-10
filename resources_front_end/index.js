@@ -31,6 +31,7 @@ var minimalApp = new function () {
         optionsTable.innerHTML = "";
         optionsTable.style.margin = "24px 0px";
 
+        minimalApp.appendOptionRow("Timestamp", false, "minimalApp.buildMainTable()");
         minimalApp.appendOptionRow("Checkboxes", false, "minimalApp.buildMainTable()");
         minimalApp.appendOptionRow("CRUD", true, "minimalApp.buildMainTable()");
         minimalApp.appendOptionRow("Online", true, "minimalApp.loadBuildMainTable()");
@@ -55,6 +56,17 @@ var minimalApp = new function () {
         idCell.innerHTML = tableEntries[entryNumber]["id"];
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
+
+        var cbOptionsTimestamp = document.getElementById("Options-Timestamp");
+
+        if (cbOptionsTimestamp.checked) {
+
+            var timestampCell = tr.insertCell(-1);
+            timestampCell.style.fontSize = "x-small";
+            timestampCell.style.fontStyle = "italic";
+            timestampCell.innerHTML = tableEntries[entryNumber]["timestamp"];
+            timestampCell.setAttribute("id", "Timestamp-" + entryNumber);
+        };
 
         var cbOptionsCheck = document.getElementById("Options-Checkboxes");
 
@@ -111,6 +123,14 @@ var minimalApp = new function () {
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
 
+        var cbOptionsTimestamp = document.getElementById("Options-Timestamp");
+
+        if (cbOptionsTimestamp.checked) {
+
+            var timestampCell = tr.insertCell(-1);
+            timestampCell.setAttribute("id", "Timestamp-" + entryNumber);
+        };
+
         var cbOptionsCheck = document.getElementById("Options-Checkboxes");
 
         if (cbOptionsCheck.checked) {
@@ -145,6 +165,8 @@ var minimalApp = new function () {
 
         mainTable.innerHTML = "";
 
+        var cbOptionsTimestamp = document.getElementById("Options-Timestamp");
+        cbOptionsTimestamp.disabled = false;
         var cbOptionsCheck = document.getElementById("Options-Checkboxes");
         cbOptionsCheck.disabled = false;
         var cbOptionsCrud = document.getElementById("Options-CRUD");
@@ -163,6 +185,14 @@ var minimalApp = new function () {
 
         minimalApp.scaleContent();
     };
+
+    this.createCustomTimestamp = function () {
+
+        var timestamp = new Date();
+        var timestampString = timestamp.toISOString();
+        var customTimestamp = timestampString.substring(0, 19);
+        return customTimestamp.replace("T", " ");
+    }
 
     this.updateBackEnd = function (inputElement) {
 
@@ -196,12 +226,17 @@ var minimalApp = new function () {
                         return;
                     } else {
 
-                        var cbCheck = document.getElementById("Check-" + activeRow);
-
-                        // Default to Create / Save (Name)
                         payloadDict["operation"] = inputElement.value;
                         payloadDict["name"] = nameCell.childNodes[0].value;
-                        payloadDict["check"] = cbCheck.checked;
+
+                        if (inputElement.value == "Create") {
+
+                            var customTimestamp = minimalApp.createCustomTimestamp();
+                            payloadDict["timestamp"] = customTimestamp;
+                        } else {
+
+                            payloadDict["check"] = tableEntries[activeRow]["check"];
+                        };
                     };
                 };
             };
@@ -228,10 +263,13 @@ var minimalApp = new function () {
 
                     if (inputElement.value == "Create") {
 
+                        var customTimestamp = minimalApp.createCustomTimestamp();
+
                         tableEntries.push({
                             "id": activeRow,
                             "name": nameCell.childNodes[0].value,
-                            "check": false
+                            "check": false,
+                            "timestamp": customTimestamp
                         });
 
                         mainTable.deleteRow(-1);

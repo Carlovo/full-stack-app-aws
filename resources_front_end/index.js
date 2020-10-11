@@ -151,7 +151,23 @@ var minimalApp = new function () {
             tableEntries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
         } else {
 
-            tableEntries.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+            var radioTimestampAsc = document.getElementById("Timestamp-sort-desc");
+
+            if (radioTimestampAsc.checked) {
+
+                tableEntries.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+            } else {
+
+                var radioTimestampAsc = document.getElementById("Checkboxes-sort-asc");
+
+                if (radioTimestampAsc.checked) {
+
+                    tableEntries.sort((a, b) => a.check.toString().localeCompare(b.check.toString()));
+                } else {
+
+                    tableEntries.sort((a, b) => b.check.toString().localeCompare(a.check.toString()));
+                };
+            };
         };
 
         for (var entryNumber = 0; entryNumber < tableEntries.length; entryNumber++) {

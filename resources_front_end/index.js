@@ -8,7 +8,7 @@ var apiUrl = "${api_url}";
 
 var minimalApp = new function () {
 
-    this.appendOptionRow = function (innerHTML, checked, onclick) {
+    this.appendOptionRow = function (innerHTML, checked, onclick, sortable) {
 
         var tr = optionsTable.insertRow(-1);
 
@@ -24,6 +24,39 @@ var minimalApp = new function () {
         optionCheckbox.checked = checked;
         optionCheckbox.setAttribute("onclick", onclick);
         checkCell.appendChild(optionCheckbox);
+
+        var sortCell = tr.insertCell(-1);
+
+        if (sortable) {
+
+            sortCell.setAttribute("type", "form");
+
+            var timestampLabelAsc = document.createElement("label");
+            timestampLabelAsc.setAttribute("for", innerHTML + "-sort-asc");
+            timestampLabelAsc.innerHTML = "&uarr;"; // arrow up
+            sortCell.appendChild(timestampLabelAsc);
+
+            var sortRadioAsc = document.createElement("input");
+            sortRadioAsc.setAttribute("type", "radio");
+            sortRadioAsc.setAttribute("name", innerHTML);
+            sortRadioAsc.setAttribute("id", innerHTML + "-sort-asc");
+            sortRadioAsc.setAttribute("onclick", "minimalApp.buildMainTable()");
+            sortCell.appendChild(sortRadioAsc);
+
+            sortRadioAsc.checked = true;
+
+            var timestampLabelDesc = document.createElement("label");
+            timestampLabelDesc.setAttribute("for", innerHTML + "-sort-desc");
+            timestampLabelDesc.innerHTML = "&darr;"; // arrow down
+            sortCell.appendChild(timestampLabelDesc);
+
+            var sortRadioDesc = document.createElement("input");
+            sortRadioDesc.setAttribute("type", "radio");
+            sortRadioDesc.setAttribute("name", innerHTML);
+            sortRadioDesc.setAttribute("id", innerHTML + "-sort-desc");
+            sortRadioDesc.setAttribute("onclick", "minimalApp.buildMainTable()");
+            sortCell.appendChild(sortRadioDesc);
+        };
     };
 
     this.buildOptionsTable = function () {
@@ -31,10 +64,10 @@ var minimalApp = new function () {
         optionsTable.innerHTML = "";
         optionsTable.style.margin = "24px 0px";
 
-        minimalApp.appendOptionRow("Timestamp", false, "minimalApp.buildMainTable()");
-        minimalApp.appendOptionRow("Checkboxes", false, "minimalApp.buildMainTable()");
-        minimalApp.appendOptionRow("CRUD", true, "minimalApp.buildMainTable()");
-        minimalApp.appendOptionRow("Online", true, "minimalApp.loadBuildMainTable()");
+        minimalApp.appendOptionRow("Timestamp", false, "minimalApp.buildMainTable()", true);
+        minimalApp.appendOptionRow("Checkboxes", false, "minimalApp.buildMainTable()", false);
+        minimalApp.appendOptionRow("CRUD", true, "minimalApp.buildMainTable()", false);
+        minimalApp.appendOptionRow("Online", true, "minimalApp.loadBuildMainTable()", false);
     };
 
     this.appendStandardButton = function (parent, value, entryNumber, onclick) {
@@ -161,27 +194,42 @@ var minimalApp = new function () {
         tr.insertCell(-1);
     };
 
+    this.toggleDisabledInput = function (disabled) {
+
+        var inputElements = document.getElementsByTagName("input");
+
+        Object.keys(inputElements).forEach(function (key) {
+            inputElements[key].disabled = disabled;
+        });
+    };
+
     this.buildMainTable = function () {
 
         mainTable.innerHTML = "";
 
-        var cbOptionsTimestamp = document.getElementById("Options-Timestamp");
-        cbOptionsTimestamp.disabled = false;
-        var cbOptionsCheck = document.getElementById("Options-Checkboxes");
-        cbOptionsCheck.disabled = false;
-        var cbOptionsCrud = document.getElementById("Options-CRUD");
-        cbOptionsCrud.disabled = false;
-        var cbOptionsOnline = document.getElementById("Options-Online");
-        cbOptionsOnline.disabled = false;
+        var radioTimestampAsc = document.getElementById("Timestamp-sort-asc");
+
+        if (radioTimestampAsc.checked) {
+
+            tableEntries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+        } else {
+
+            tableEntries.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+        };
 
         for (var entryNumber = 0; entryNumber < tableEntries.length; entryNumber++) {
 
             minimalApp.appendItemRow(entryNumber);
         };
 
+        var cbOptionsCrud = document.getElementById("Options-CRUD");
+
         if (cbOptionsCrud.checked) {
+
             minimalApp.appendCreateRow(entryNumber);
         };
+
+        minimalApp.toggleDisabledInput(false);
 
         minimalApp.scaleContent();
     };
@@ -296,7 +344,6 @@ var minimalApp = new function () {
             if (this.readyState == 4 && this.status == 200) {
 
                 tableEntries = JSON.parse(this.responseText);
-                tableEntries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
                 minimalApp.buildMainTable();
             };
@@ -306,11 +353,7 @@ var minimalApp = new function () {
 
         xhttp.send(payload);
 
-        var inputElements = document.getElementsByTagName("input");
-
-        Object.keys(inputElements).forEach(function (key) {
-            inputElements[key].disabled = true;
-        });
+        minimalApp.toggleDisabledInput(true);
     };
 
     this.editItem = function (oButton) {
@@ -403,7 +446,6 @@ var minimalApp = new function () {
             if (this.readyState == 4 && this.status == 200) {
 
                 tableEntries = JSON.parse(this.responseText);
-                tableEntries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
                 minimalApp.buildMainTable();
             };

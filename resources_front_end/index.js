@@ -1,74 +1,11 @@
 "use strict";
 
 var mainTable = document.getElementById("mainTable");
-var optionsTable = document.getElementById("optionsTable");
 
 var tableEntries = [];
 var apiUrl = "${api_url}";
 
 var minimalApp = new function () {
-
-    this.appendOptionRow = function (innerHTML, checked, onclick, sortable) {
-
-        var tr = optionsTable.insertRow(-1);
-
-        var optionLabelCell = tr.insertCell(-1);
-        optionLabelCell.innerHTML = innerHTML;
-
-        var checkCell = tr.insertCell(-1);
-
-        var optionCheckbox = document.createElement("input");
-        optionCheckbox.setAttribute("type", "checkbox");
-        optionCheckbox.setAttribute("id", "Options-" + innerHTML);
-        optionCheckbox.disabled = true;
-        optionCheckbox.checked = checked;
-        optionCheckbox.setAttribute("onclick", onclick);
-        checkCell.appendChild(optionCheckbox);
-
-        var sortCell = tr.insertCell(-1);
-
-        if (sortable) {
-
-            sortCell.setAttribute("type", "form");
-
-            var timestampLabelAsc = document.createElement("label");
-            timestampLabelAsc.setAttribute("for", innerHTML + "-sort-asc");
-            timestampLabelAsc.innerHTML = "&uarr;"; // arrow up
-            sortCell.appendChild(timestampLabelAsc);
-
-            var sortRadioAsc = document.createElement("input");
-            sortRadioAsc.setAttribute("type", "radio");
-            sortRadioAsc.setAttribute("name", innerHTML);
-            sortRadioAsc.setAttribute("id", innerHTML + "-sort-asc");
-            sortRadioAsc.setAttribute("onclick", "minimalApp.buildMainTable()");
-            sortCell.appendChild(sortRadioAsc);
-
-            sortRadioAsc.checked = true;
-
-            var timestampLabelDesc = document.createElement("label");
-            timestampLabelDesc.setAttribute("for", innerHTML + "-sort-desc");
-            timestampLabelDesc.innerHTML = "&darr;"; // arrow down
-            sortCell.appendChild(timestampLabelDesc);
-
-            var sortRadioDesc = document.createElement("input");
-            sortRadioDesc.setAttribute("type", "radio");
-            sortRadioDesc.setAttribute("name", innerHTML);
-            sortRadioDesc.setAttribute("id", innerHTML + "-sort-desc");
-            sortRadioDesc.setAttribute("onclick", "minimalApp.buildMainTable()");
-            sortCell.appendChild(sortRadioDesc);
-        };
-    };
-
-    this.buildOptionsTable = function () {
-
-        optionsTable.innerHTML = "";
-        optionsTable.style.margin = "24px 0px";
-
-        minimalApp.appendOptionRow("Timestamp", false, "minimalApp.buildMainTable()", true);
-        minimalApp.appendOptionRow("Checkboxes", false, "minimalApp.buildMainTable()", false);
-        minimalApp.appendOptionRow("CRUD", true, "minimalApp.buildMainTable()", false);
-        minimalApp.appendOptionRow("Online", true, "minimalApp.loadBuildMainTable()", false);
-    };
 
     this.appendStandardButton = function (parent, value, entryNumber, onclick) {
 
@@ -456,5 +393,4 @@ var minimalApp = new function () {
     };
 };
 
-minimalApp.buildOptionsTable();
 minimalApp.loadBuildMainTable();

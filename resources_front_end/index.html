@@ -21,8 +21,7 @@
                     </td>
                     <td type="form">
                         <label for="Timestamp-sort-asc">&uarr;</label>
-                        <input type="radio" checked="checked" name="sort" id="Timestamp-sort-asc"
-                            onclick="minimalApp.buildMainTable()">
+                        <input type="radio" name="sort" id="Timestamp-sort-asc" onclick="minimalApp.buildMainTable()">
                         <label for="Timestamp-sort-desc">&darr;</label>
                         <input type="radio" name="sort" id="Timestamp-sort-desc" onclick="minimalApp.buildMainTable()">
                     </td>
@@ -37,6 +36,20 @@
                         <input type="radio" name="sort" id="Checkboxes-sort-asc" onclick="minimalApp.buildMainTable()">
                         <label for="Checkboxes-sort-desc">&darr;</label>
                         <input type="radio" name="sort" id="Checkboxes-sort-desc" onclick="minimalApp.buildMainTable()">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Priority</td>
+                    <td>
+                        <input type="checkbox" id="Options-Priority" onclick="minimalApp.buildMainTable()">
+                    </td>
+                    <td type="form">
+                        <label for="Priority-sort-asc">&uarr;</label>
+                        <input type="radio" checked="checked" name="sort" id="Priority-sort-asc"
+                            onclick="minimalApp.buildMainTable()">
+                        <label for="Priority-sort-desc">&darr;</label>
+                        <input type="radio" name="sort" id="Priority-sort-desc" onclick="minimalApp.buildMainTable()">
                     </td>
                     <td></td>
                 </tr>

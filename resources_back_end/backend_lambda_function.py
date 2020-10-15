@@ -13,12 +13,18 @@ class DatabaseAdapter:
     def scan_database(self):
         return self.db_client.scan(TableName=self.db_name)
 
-    def put_item(self, item_id: str, item_name: str, item_timestamp: str):
+    def put_item(self, item_id: str, item_name: str, item_priority: float, item_timestamp: str):
+        # boto3 communicates numbers as string to DynamoDB
+        # make sure that it actually is a number before implicit conversion
+        assert type(item_priority) == int or type(item_priority) == float
+        item_priority = str(item_priority)
+
         self.db_client.put_item(
             TableName=self.db_name,
             Item={
                 "id": {"S": item_id},
                 "name": {"S": item_name},
+                "priority": {"N": item_priority},
                 "check": {"BOOL": False},
                 "timestamp": {"S": item_timestamp}
             }
@@ -34,7 +40,12 @@ class DatabaseAdapter:
             }
         )
 
-    def update_item(self, item_id: str, item_name: str, item_check: str):
+    def update_item(self, item_id: str, item_name: str, item_priority: float, item_check: str):
+        # boto3 communicates numbers as string to DynamoDB
+        # make sure that it actually is a number before implicit conversion
+        assert type(item_priority) == int or type(item_priority) == float
+        item_priority = str(item_priority)
+
         self.db_client.update_item(
             TableName=self.db_name,
             Key={
@@ -42,11 +53,18 @@ class DatabaseAdapter:
                     "S": item_id
                 }
             },
-            UpdateExpression="SET #n = :new_name, #c = :new_check",
-            ExpressionAttributeNames={"#n": "name", "#c": "check"},
+            UpdateExpression="SET #n = :new_name, #p = :new_priority, #c = :new_check",
+            ExpressionAttributeNames={
+                "#n": "name",
+                "#p": "priority",
+                "#c": "check"
+            },
             ExpressionAttributeValues={
                 ":new_name": {
                     "S": item_name
+                },
+                ":new_priority": {
+                    "N": item_priority
                 },
                 ":new_check": {
                     "BOOL": item_check
@@ -72,6 +90,7 @@ def lambda_handler(event, context):
             database_adapter.update_item(
                 item_id=request["id"],
                 item_name=request["name"],
+                item_priority=request["priority"],
                 item_check=request["check"]
             )
         else:
@@ -80,7 +99,8 @@ def lambda_handler(event, context):
             database_adapter.put_item(
                 item_id=new_id,
                 item_name=request["name"],
-                item_timestamp=request["timestamp"],
+                item_priority=request["priority"],
+                item_timestamp=request["timestamp"]
             )
 
         database_scan = database_adapter.scan_database()
@@ -89,6 +109,7 @@ def lambda_handler(event, context):
         {
             "id": item["id"]["S"],
             "name": item["name"]["S"],
+            "priority": item["priority"]["N"],
             "check": item["check"]["BOOL"],
             "timestamp": item["timestamp"]["S"]
         }

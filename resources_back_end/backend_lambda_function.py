@@ -109,7 +109,7 @@ def lambda_handler(event, context):
         {
             "id": item["id"]["S"],
             "name": item["name"]["S"],
-            "priority": item["priority"]["N"],
+            "priority": float(item["priority"]["N"]),
             "check": item["check"]["BOOL"],
             "timestamp": item["timestamp"]["S"]
         }

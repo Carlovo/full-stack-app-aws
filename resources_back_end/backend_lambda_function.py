@@ -6,16 +6,31 @@ import uuid
 
 class DatabaseAdapter:
 
+    # boto3 communicates numbers as strings to/from DynamoDB
+    # make sure that something actually is a number before implicit conversion
+    # and convert back before returning database scans
+
     def __init__(self):
         self.db_client = boto3.client("dynamodb")
         self.db_name = os.getenv("table_name")
 
     def scan_database(self):
-        return self.db_client.scan(TableName=self.db_name)
+        response = self.db_client.scan(TableName=self.db_name)
+
+        items = [
+            {
+                "id": item["id"]["S"],
+                "name": item["name"]["S"],
+                "priority": float(item["priority"]["N"]),
+                "check": item["check"]["BOOL"],
+                "timestamp": item["timestamp"]["S"]
+            }
+            for item in response["Items"]
+        ]
+
+        return items
 
     def put_item(self, item_id: str, item_name: str, item_priority: float, item_timestamp: str):
-        # boto3 communicates numbers as string to DynamoDB
-        # make sure that it actually is a number before implicit conversion
         assert type(item_priority) == int or type(item_priority) == float
         item_priority = str(item_priority)
 
@@ -41,8 +56,6 @@ class DatabaseAdapter:
         )
 
     def update_item(self, item_id: str, item_name: str, item_priority: float, item_check: str):
-        # boto3 communicates numbers as string to DynamoDB
-        # make sure that it actually is a number before implicit conversion
         assert type(item_priority) == int or type(item_priority) == float
         item_priority = str(item_priority)
 
@@ -75,7 +88,6 @@ class DatabaseAdapter:
 
 def lambda_handler(event, context):
     database_adapter = DatabaseAdapter()
-    database_scan = database_adapter.scan_database()
 
     # check for POST, otherwise default to GET
     if event["httpMethod"] == "POST":
@@ -103,25 +115,14 @@ def lambda_handler(event, context):
                 item_timestamp=request["timestamp"]
             )
 
-        database_scan = database_adapter.scan_database()
-
-    items = [
-        {
-            "id": item["id"]["S"],
-            "name": item["name"]["S"],
-            "priority": float(item["priority"]["N"]),
-            "check": item["check"]["BOOL"],
-            "timestamp": item["timestamp"]["S"]
-        }
-        for item in database_scan["Items"]
-    ]
+    database_scan = database_adapter.scan_database()
 
     response = {
         "statusCode": 200,
         "headers": {
-            'Access-Control-Allow-Origin': '*',
+            "Access-Control-Allow-Origin": "*",
         },
-        "body": json.dumps(items)
+        "body": json.dumps(database_scan)
     }
 
     return response

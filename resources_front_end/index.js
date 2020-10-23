@@ -49,7 +49,7 @@ var minimalApp = new function () {
             cbCheck.setAttribute("type", "checkbox");
             cbCheck.checked = tableEntries[entryNumber]["check"];
             cbCheck.setAttribute("id", "Check-" + entryNumber);
-            cbCheck.setAttribute("onclick", "minimalApp.updateBackEnd(this)");
+            cbCheck.setAttribute("onclick", "minimalApp.updateItemCheck(" + entryNumber + ")");
             checkCell.appendChild(cbCheck);
         };
 
@@ -79,13 +79,13 @@ var minimalApp = new function () {
                 updateCell, "Cancel", entryNumber, "minimalApp.cancelEditName(this)"
             );
             minimalApp.appendStandardButton(
-                updateCell, "Save", entryNumber, "minimalApp.updateBackEnd(this)"
+                updateCell, "Save", entryNumber, "minimalApp.updateItemNameAndPriority(" + entryNumber + ")"
             );
 
             var deleteCell = tr.insertCell(-1);
 
             minimalApp.appendStandardButton(
-                deleteCell, "Delete", entryNumber, "minimalApp.updateBackEnd(this)"
+                deleteCell, "Delete", entryNumber, "minimalApp.deleteItem(" + entryNumber + ")"
             );
 
             minimalApp.toggleEditItemButtons(entryNumber, false);
@@ -98,7 +98,7 @@ var minimalApp = new function () {
 
         // these are just placeholders
         var idCell = tr.insertCell(-1);
-        idCell.innerHTML = "-";
+        idCell.innerHTML = entryNumber;
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
 
@@ -148,7 +148,7 @@ var minimalApp = new function () {
         var createCell = tr.insertCell(-1);
 
         minimalApp.appendStandardButton(
-            createCell, "Create", entryNumber, "minimalApp.updateBackEnd(this)"
+            createCell, "Create", entryNumber, "minimalApp.createItem(" + entryNumber + ")"
         );
 
         // another placeholder
@@ -233,156 +233,122 @@ var minimalApp = new function () {
         var timestampString = timestamp.toISOString();
         var customTimestamp = timestampString.substring(0, 19);
         return customTimestamp.replace("T", " ");
-    }
+    };
 
-    this.updateBackEnd = function (inputElement) {
+    this.validateAlphanumericInput = function (entryNumber, itemDict) {
 
-        var activeRow = inputElement.id.split("-")[1];
+        var nameCell = document.getElementById("Name-" + entryNumber);
+
+        if (nameCell.childNodes[0].value == "") {
+
+            alert("name field may not be empty");
+            return;
+        };
+
+        itemDict["name"] = nameCell.childNodes[0].value;
+
+        var cbOptionsPriority = document.getElementById("Options-Priority");
+
+        if (cbOptionsPriority.checked) {
+
+            var priorityCell = document.getElementById("Priority-" + entryNumber);
+
+            if (priorityCell.childNodes[0].value == "") {
+
+                alert("priority field may not be empty");
+                return;
+            };
+
+            itemDict["priority"] = Number(priorityCell.childNodes[0].value);
+        } else {
+
+            itemDict["priority"] = tableEntries[entryNumber]["priority"];
+        };
+
+        itemDict["id"] = tableEntries[entryNumber]["id"];
+        itemDict["check"] = tableEntries[entryNumber]["check"];
+        itemDict["timestamp"] = tableEntries[entryNumber]["timestamp"];
 
         var cbOptionsOnline = document.getElementById("Options-Online");
 
         if (cbOptionsOnline.checked) {
 
-            var idCell = document.getElementById("Id-" + activeRow);
-
-            var payloadDict = { "id": idCell.innerHTML };
-
-            if (inputElement.value == "Delete") {
-
-                payloadDict["operation"] = "Delete";
-            } else {
-
-                var nameCell = document.getElementById("Name-" + activeRow);
-
-                if (inputElement.type == "checkbox") {
-
-                    payloadDict["operation"] = "Save";
-                    payloadDict["name"] = nameCell.innerHTML;
-                    payloadDict["priority"] = tableEntries[activeRow]["priority"];
-                    payloadDict["check"] = inputElement.checked;
-                } else {
-
-                    if (nameCell.childNodes[0].value == "") {
-
-                        alert("name field may not be empty");
-                        return;
-                    } else {
-
-                        var cbOptionsPriority = document.getElementById("Options-Priority");
-
-                        if (cbOptionsPriority.checked) {
-
-                            var priorityCell = document.getElementById("Priority-" + activeRow);
-
-                            if (priorityCell.childNodes[0].value == "") {
-
-                                alert("priority field may not be empty");
-                                return;
-                            };
-
-                            payloadDict["priority"] = Number(priorityCell.childNodes[0].value);
-                        };
-
-                        payloadDict["operation"] = inputElement.value;
-                        payloadDict["name"] = nameCell.childNodes[0].value;
-
-                        if (inputElement.value == "Create") {
-
-                            var customTimestamp = minimalApp.createCustomTimestamp();
-                            payloadDict["timestamp"] = customTimestamp;
-
-                            if (!cbOptionsPriority.checked) {
-
-                                payloadDict["priority"] = 0;
-                            };
-                        } else {
-
-                            payloadDict["check"] = tableEntries[activeRow]["check"];
-
-                            if (!cbOptionsPriority.checked) {
-
-                                payloadDict["priority"] = tableEntries[activeRow]["priority"];
-                            };
-                        };
-                    };
-                };
-            };
-
-            var payloadText = JSON.stringify(payloadDict);
-
-            minimalApp.xhttpBackEnd(payloadText);
+            minimalApp.xhttpBackEnd(itemDict);
         } else {
 
-            if (inputElement.type == "checkbox") {
-
-                tableEntries[activeRow]["check"] = inputElement.checked;
-            } else {
-
-                if (inputElement.value == "Delete") {
-
-                    tableEntries.splice(activeRow, 1);
-                };
-
-                if (inputElement.value == "Create" || inputElement.value == "Save") {
-
-                    var cbOptionsPriority = document.getElementById("Options-Priority");
-
-                    if (cbOptionsPriority.checked) {
-
-                        var priorityCell = document.getElementById("Priority-" + activeRow);
-
-                        if (priorityCell.childNodes[0].value == "") {
-
-                            alert("priority field may not be empty");
-                            return;
-                        };
-
-                        var entryPriority = Number(priorityCell.childNodes[0].value);
-                    };
-
-                    var nameCell = document.getElementById("Name-" + activeRow);
-
-                    if (nameCell.childNodes[0].value == "") {
-
-                        alert("name field may not be empty");
-                        return;
-                    } else {
-
-                        if (inputElement.value == "Create") {
-
-                            var customTimestamp = minimalApp.createCustomTimestamp();
-
-                            if (!cbOptionsPriority.checked) {
-
-                                entryPriority = 0;
-                            };
-
-                            tableEntries.push({
-                                "id": activeRow,
-                                "name": nameCell.childNodes[0].value,
-                                "priority": entryPriority,
-                                "check": false,
-                                "timestamp": customTimestamp
-                            });
-                        } else {
-
-                            tableEntries[activeRow]["name"] = nameCell.childNodes[0].value;
-
-                            if (cbOptionsPriority.checked) {
-
-                                tableEntries[activeRow]["priority"] = entryPriority;
-                            };
-                        };
-                    };
-                };
-            };
+            tableEntries[entryNumber] = itemDict;
 
             minimalApp.buildMainTable();
         };
     };
 
-    this.xhttpBackEnd = function (payload) {
+    this.createItem = function (entryNumber) {
 
+        var itemDict = {};
+        itemDict["operation"] = "Create";
+
+        tableEntries.push({
+            "id": entryNumber,
+            "check": false,
+            "priority": 0,
+            "timestamp": minimalApp.createCustomTimestamp()
+        });
+
+        minimalApp.validateAlphanumericInput(entryNumber, itemDict);
+    };
+
+    this.updateItemNameAndPriority = function (entryNumber) {
+
+        var itemDict = {};
+        itemDict["operation"] = "Save";
+
+        minimalApp.validateAlphanumericInput(entryNumber, itemDict);
+    };
+
+    this.updateItemCheck = function (entryNumber) {
+
+        var inputElement = document.getElementById("Check-" + entryNumber);
+
+        var cbOptionsOnline = document.getElementById("Options-Online");
+
+        if (cbOptionsOnline.checked) {
+
+            var itemDict = {};
+            itemDict["id"] = tableEntries[entryNumber]["id"];
+            itemDict["operation"] = "Save";
+            itemDict["name"] = tableEntries[entryNumber]["name"];
+            itemDict["priority"] = tableEntries[entryNumber]["priority"];
+            itemDict["check"] = inputElement.checked;
+
+            minimalApp.xhttpBackEnd(itemDict);
+        } else {
+
+            tableEntries[entryNumber]["check"] = inputElement.checked;
+        };
+    };
+
+    this.deleteItem = function (entryNumber) {
+
+        var cbOptionsOnline = document.getElementById("Options-Online");
+
+        if (cbOptionsOnline.checked) {
+
+            var itemDict = {};
+            itemDict["id"] = tableEntries[entryNumber]["id"];
+            itemDict["operation"] = "Delete";
+
+            minimalApp.xhttpBackEnd(itemDict);
+        } else {
+
+            tableEntries.splice(entryNumber, 1);
+
+            minimalApp.buildMainTable();
+        };
+    };
+
+    this.xhttpBackEnd = function (itemDict) {
+
+        var payloadText = JSON.stringify(itemDict);
         var xhttp = new XMLHttpRequest();
 
         xhttp.onreadystatechange = function () {
@@ -397,55 +363,55 @@ var minimalApp = new function () {
 
         xhttp.open("POST", apiUrl, true);
 
-        xhttp.send(payload);
+        xhttp.send(payloadText);
 
         minimalApp.toggleDisabledInput(true);
     };
 
     this.editItem = function (oButton) {
 
-        var activeRow = oButton.id.split("-")[1];
+        var entryNumber = oButton.id.split("-")[1];
 
         var cbOptionsPriority = document.getElementById("Options-Priority");
 
         if (cbOptionsPriority.checked) {
 
-            var priorityCell = document.getElementById("Priority-" + activeRow);
+            var priorityCell = document.getElementById("Priority-" + entryNumber);
 
             var priorityNumberBox = document.createElement("input");
             priorityNumberBox.setAttribute("type", "number");
-            priorityNumberBox.setAttribute("value", tableEntries[activeRow]["priority"]);
+            priorityNumberBox.setAttribute("value", tableEntries[entryNumber]["priority"]);
             priorityNumberBox.setAttribute("style", "width: 40px; touch-action: none");
             priorityCell.innerText = "";
             priorityCell.appendChild(priorityNumberBox);
         };
 
-        var nameCell = document.getElementById("Name-" + activeRow);
+        var nameCell = document.getElementById("Name-" + entryNumber);
 
         var nameTextBox = document.createElement("input");
         nameTextBox.setAttribute("type", "text");
-        nameTextBox.setAttribute("value", tableEntries[activeRow]["name"]);
+        nameTextBox.setAttribute("value", tableEntries[entryNumber]["name"]);
         nameTextBox.setAttribute("style", "touch-action: none");
         nameCell.innerText = "";
         nameCell.appendChild(nameTextBox);
 
-        minimalApp.toggleEditItemButtons(activeRow, true);
+        minimalApp.toggleEditItemButtons(entryNumber, true);
     };
 
     this.cancelEditName = function (oButton) {
 
-        var activeRow = oButton.id.split("-")[1];
+        var entryNumber = oButton.id.split("-")[1];
 
-        var priorityCell = document.getElementById("Priority-" + activeRow);
-        priorityCell.innerHTML = tableEntries[activeRow]["priority"];
+        var priorityCell = document.getElementById("Priority-" + entryNumber);
+        priorityCell.innerHTML = tableEntries[entryNumber]["priority"];
 
-        var nameCell = document.getElementById("Name-" + activeRow);
-        nameCell.innerHTML = tableEntries[activeRow]["name"];
+        var nameCell = document.getElementById("Name-" + entryNumber);
+        nameCell.innerHTML = tableEntries[entryNumber]["name"];
 
-        minimalApp.toggleEditItemButtons(activeRow, false);
+        minimalApp.toggleEditItemButtons(entryNumber, false);
     };
 
-    this.toggleEditItemButtons = function (activeRow, editMode) {
+    this.toggleEditItemButtons = function (entryNumber, editMode) {
 
         if (editMode) {
 
@@ -461,7 +427,7 @@ var minimalApp = new function () {
 
         if (cbOptionsCheck.checked) {
 
-            var cbCheck = document.getElementById("Check-" + activeRow);
+            var cbCheck = document.getElementById("Check-" + entryNumber);
             cbCheck.setAttribute("style", "display:" + optionsDisplay);
         };
 
@@ -469,14 +435,14 @@ var minimalApp = new function () {
 
         if (cbOptionsCrud.checked) {
 
-            var btUpdate = document.getElementById("Update-" + activeRow);
+            var btUpdate = document.getElementById("Update-" + entryNumber);
             btUpdate.setAttribute("style", "display:" + optionsDisplay);
-            var btDelete = document.getElementById("Delete-" + activeRow);
+            var btDelete = document.getElementById("Delete-" + entryNumber);
             btDelete.setAttribute("style", "display:" + optionsDisplay);
 
-            var btCancel = document.getElementById("Cancel-" + activeRow);
+            var btCancel = document.getElementById("Cancel-" + entryNumber);
             btCancel.setAttribute("style", "display:" + nameEditDisplay);
-            var btSave = document.getElementById("Save-" + activeRow);
+            var btSave = document.getElementById("Save-" + entryNumber);
             btSave.setAttribute("style", "display:" + nameEditDisplay);
         };
     };

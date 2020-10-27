@@ -235,17 +235,17 @@ var minimalApp = new function () {
         return customTimestamp.replace("T", " ");
     };
 
-    this.validateAlphanumericInput = function (entryNumber, itemDict) {
+    this.validateAlphanumericInput = function (entryNumber, currentPriority) {
+
+        var valid = true;
 
         var nameCell = document.getElementById("Name-" + entryNumber);
 
         if (nameCell.childNodes[0].value == "") {
 
             alert("name field may not be empty");
-            return;
+            valid = false;
         };
-
-        itemDict["name"] = nameCell.childNodes[0].value;
 
         var cbOptionsPriority = document.getElementById("Options-Priority");
 
@@ -256,53 +256,77 @@ var minimalApp = new function () {
             if (priorityCell.childNodes[0].value == "") {
 
                 alert("priority field may not be empty");
-                return;
+                valid = false;
             };
 
-            itemDict["priority"] = Number(priorityCell.childNodes[0].value);
-        } else {
-
-            itemDict["priority"] = tableEntries[entryNumber]["priority"];
+            currentPriority = Number(priorityCell.childNodes[0].value);
         };
 
-        itemDict["id"] = tableEntries[entryNumber]["id"];
-        itemDict["check"] = tableEntries[entryNumber]["check"];
-        itemDict["timestamp"] = tableEntries[entryNumber]["timestamp"];
-
-        var cbOptionsOnline = document.getElementById("Options-Online");
-
-        if (cbOptionsOnline.checked) {
-
-            minimalApp.xhttpBackEnd(itemDict);
-        } else {
-
-            tableEntries[entryNumber] = itemDict;
-
-            minimalApp.buildMainTable();
-        };
+        return [valid, nameCell.childNodes[0].value, currentPriority];
     };
 
     this.createItem = function (entryNumber) {
 
         var itemDict = {};
-        itemDict["operation"] = "Create";
+        var valid;
 
-        tableEntries.push({
-            "id": entryNumber,
-            "check": false,
-            "priority": 0,
-            "timestamp": minimalApp.createCustomTimestamp()
-        });
+        [
+            valid,
+            itemDict["name"],
+            itemDict["priority"]
+        ] = minimalApp.validateAlphanumericInput(entryNumber, 0);
 
-        minimalApp.validateAlphanumericInput(entryNumber, itemDict);
+        if (valid) {
+
+            itemDict["check"] = false;
+            itemDict["timestamp"] = minimalApp.createCustomTimestamp();
+
+            var cbOptionsOnline = document.getElementById("Options-Online");
+
+            if (cbOptionsOnline.checked) {
+
+                itemDict["operation"] = "Create";
+
+                minimalApp.xhttpBackEnd(itemDict);
+            } else {
+
+                itemDict["id"] = entryNumber;
+
+                tableEntries.push(itemDict);
+
+                minimalApp.buildMainTable();
+            };
+        };
     };
 
     this.updateItemNameAndPriority = function (entryNumber) {
 
-        var itemDict = {};
-        itemDict["operation"] = "Save";
+        var itemDict = tableEntries[entryNumber];
 
-        minimalApp.validateAlphanumericInput(entryNumber, itemDict);
+        var valid;
+
+        [
+            valid,
+            itemDict["name"],
+            itemDict["priority"]
+        ] = minimalApp.validateAlphanumericInput(entryNumber, itemDict["priority"]);
+
+        if (valid) {
+
+            var cbOptionsOnline = document.getElementById("Options-Online");
+
+            if (cbOptionsOnline.checked) {
+
+                itemDict["operation"] = "Save";
+
+                minimalApp.xhttpBackEnd(itemDict);
+            } else {
+
+                tableEntries[entryNumber] = itemDict
+
+                minimalApp.buildMainTable();
+            };
+        };
     };
 
     this.updateItemCheck = function (entryNumber) {
@@ -313,11 +337,9 @@ var minimalApp = new function () {
 
         if (cbOptionsOnline.checked) {
 
-            var itemDict = {};
-            itemDict["id"] = tableEntries[entryNumber]["id"];
+            var itemDict = tableEntries[entryNumber];
+
             itemDict["operation"] = "Save";
-            itemDict["name"] = tableEntries[entryNumber]["name"];
-            itemDict["priority"] = tableEntries[entryNumber]["priority"];
             itemDict["check"] = inputElement.checked;
 
             minimalApp.xhttpBackEnd(itemDict);
@@ -333,8 +355,8 @@ var minimalApp = new function () {
 
         if (cbOptionsOnline.checked) {
 
-            var itemDict = {};
-            itemDict["id"] = tableEntries[entryNumber]["id"];
+            var itemDict = tableEntries[entryNumber];
+
             itemDict["operation"] = "Delete";
 
             minimalApp.xhttpBackEnd(itemDict);
@@ -402,8 +424,13 @@ var minimalApp = new function () {
 
         var entryNumber = oButton.id.split("-")[1];
 
-        var priorityCell = document.getElementById("Priority-" + entryNumber);
-        priorityCell.innerHTML = tableEntries[entryNumber]["priority"];
+        var cbOptionsPriority = document.getElementById("Options-Priority");
+
+        if (cbOptionsPriority.checked) {
+
+            var priorityCell = document.getElementById("Priority-" + entryNumber);
+            priorityCell.innerHTML = tableEntries[entryNumber]["priority"];
+        };
 
         var nameCell = document.getElementById("Name-" + entryNumber);
         nameCell.innerHTML = tableEntries[entryNumber]["name"];

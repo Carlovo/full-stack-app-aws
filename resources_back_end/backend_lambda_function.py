@@ -87,6 +87,8 @@ class DatabaseAdapter:
 
 
 def lambda_handler(event, context):
+    print(event)
+
     database_adapter = DatabaseAdapter()
 
     # check for POST, otherwise default to GET

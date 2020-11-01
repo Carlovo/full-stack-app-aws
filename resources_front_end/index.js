@@ -292,6 +292,8 @@ var minimalApp = new function () {
 
                 itemDict["id"] = entryNumber;
 
+                console.log(itemDict);
+
                 tableEntries.push(itemDict);
 
                 minimalApp.buildMainTable();
@@ -322,6 +324,8 @@ var minimalApp = new function () {
                 minimalApp.xhttpBackEnd(itemDict);
             } else {
 
+                console.log(itemDict);
+
                 tableEntries[entryNumber] = itemDict
 
                 minimalApp.buildMainTable();
@@ -332,37 +336,39 @@ var minimalApp = new function () {
     this.updateItemCheck = function (entryNumber) {
 
         var inputElement = document.getElementById("Check-" + entryNumber);
+        var itemDict = tableEntries[entryNumber];
+
+        itemDict["operation"] = "Save";
+        itemDict["check"] = inputElement.checked;
 
         var cbOptionsOnline = document.getElementById("Options-Online");
 
         if (cbOptionsOnline.checked) {
-
-            var itemDict = tableEntries[entryNumber];
-
-            itemDict["operation"] = "Save";
-            itemDict["check"] = inputElement.checked;
 
             minimalApp.xhttpBackEnd(itemDict);
         } else {
 
             tableEntries[entryNumber]["check"] = inputElement.checked;
+
+            console.log(itemDict);
         };
     };
 
     this.deleteItem = function (entryNumber) {
 
+        var itemDict = tableEntries[entryNumber];
+        itemDict["operation"] = "Delete";
+
         var cbOptionsOnline = document.getElementById("Options-Online");
 
         if (cbOptionsOnline.checked) {
-
-            var itemDict = tableEntries[entryNumber];
-
-            itemDict["operation"] = "Delete";
 
             minimalApp.xhttpBackEnd(itemDict);
         } else {
 
             tableEntries.splice(entryNumber, 1);
+
+            console.log(itemDict);
 
             minimalApp.buildMainTable();
         };
@@ -372,6 +378,8 @@ var minimalApp = new function () {
 
         var payloadText = JSON.stringify(itemDict);
         var xhttp = new XMLHttpRequest();
+
+        console.log(payloadText);
 
         xhttp.onreadystatechange = function () {
 

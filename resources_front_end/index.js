@@ -17,13 +17,13 @@ var minimalApp = new function () {
         parent.appendChild(standardButton);
     };
 
-    this.appendItemRow = function (entryNumber) {
+    this.appendItemRow = function (tableEntry, entryNumber) {
 
         var tr = mainTable.insertRow(-1);
         tr.setAttribute("id", "tr-" + entryNumber);
 
         var idCell = tr.insertCell(-1);
-        idCell.innerHTML = tableEntries[entryNumber]["id"];
+        idCell.innerHTML = tableEntry["id"];
         idCell.setAttribute("id", "Id-" + entryNumber);
         idCell.setAttribute("style", "display:none;");
 
@@ -34,7 +34,7 @@ var minimalApp = new function () {
             var timestampCell = tr.insertCell(-1);
             timestampCell.style.fontSize = "x-small";
             timestampCell.style.fontStyle = "italic";
-            timestampCell.innerHTML = tableEntries[entryNumber]["timestamp"];
+            timestampCell.innerHTML = tableEntry["timestamp"];
             timestampCell.setAttribute("id", "Timestamp-" + entryNumber);
         };
 
@@ -47,7 +47,7 @@ var minimalApp = new function () {
             var cbCheck = document.createElement("input");
             checkCell.setAttribute("class", "check");
             cbCheck.setAttribute("type", "checkbox");
-            cbCheck.checked = tableEntries[entryNumber]["check"];
+            cbCheck.checked = tableEntry["check"];
             cbCheck.setAttribute("id", "Check-" + entryNumber);
             cbCheck.setAttribute("onclick", "minimalApp.updateItemCheck(" + entryNumber + ")");
             checkCell.appendChild(cbCheck);
@@ -58,12 +58,12 @@ var minimalApp = new function () {
         if (cbOptionsPriority.checked) {
 
             var priorityCell = tr.insertCell(-1);
-            priorityCell.innerHTML = tableEntries[entryNumber]["priority"];
+            priorityCell.innerHTML = tableEntry["priority"];
             priorityCell.setAttribute("id", "Priority-" + entryNumber);
         };
 
         var nameCell = tr.insertCell(-1);
-        nameCell.innerHTML = tableEntries[entryNumber]["name"];
+        nameCell.innerHTML = tableEntry["name"];
         nameCell.setAttribute("id", "Name-" + entryNumber);
 
         var cbOptionsCrud = document.getElementById("Options-CRUD");
@@ -92,14 +92,14 @@ var minimalApp = new function () {
         };
     };
 
-    this.appendCreateRow = function (entryNumber) {
+    this.appendCreateRow = function () {
 
         var tr = mainTable.insertRow(-1);
 
         // these are just placeholders
         var idCell = tr.insertCell(-1);
-        idCell.innerHTML = entryNumber;
-        idCell.setAttribute("id", "Id-" + entryNumber);
+        idCell.innerHTML = tableEntries.length;
+        idCell.setAttribute("id", "Id-" + tableEntries.length);
         idCell.setAttribute("style", "display:none;");
 
         var cbOptionsTimestamp = document.getElementById("Options-Timestamp");
@@ -107,7 +107,7 @@ var minimalApp = new function () {
         if (cbOptionsTimestamp.checked) {
 
             var timestampCell = tr.insertCell(-1);
-            timestampCell.setAttribute("id", "Timestamp-" + entryNumber);
+            timestampCell.setAttribute("id", "Timestamp-" + tableEntries.length);
         };
 
         var cbOptionsCheck = document.getElementById("Options-Checkboxes");
@@ -116,7 +116,7 @@ var minimalApp = new function () {
 
             var checkCell = tr.insertCell(-1);
             checkCell.setAttribute("class", "check");
-            checkCell.setAttribute("id", "Check-" + entryNumber);
+            checkCell.setAttribute("id", "Check-" + tableEntries.length);
         };
 
         // these are actual content
@@ -125,7 +125,7 @@ var minimalApp = new function () {
         if (cbOptionsPriority.checked) {
 
             var priorityCell = tr.insertCell(-1);
-            priorityCell.setAttribute("id", "Priority-" + entryNumber);
+            priorityCell.setAttribute("id", "Priority-" + tableEntries.length);
 
             var priorityNumberBox = document.createElement("input");
             priorityNumberBox.setAttribute("type", "number");
@@ -136,7 +136,7 @@ var minimalApp = new function () {
         };
 
         var nameCell = tr.insertCell(-1);
-        nameCell.setAttribute("id", "Name-" + entryNumber);
+        nameCell.setAttribute("id", "Name-" + tableEntries.length);
 
         var nameTextBox = document.createElement("input");
         nameTextBox.setAttribute("type", "text");
@@ -148,7 +148,7 @@ var minimalApp = new function () {
         var createCell = tr.insertCell(-1);
 
         minimalApp.appendStandardButton(
-            createCell, "Create", entryNumber, "minimalApp.createItem(" + entryNumber + ")"
+            createCell, "Create", tableEntries.length, "minimalApp.createItem()"
         );
 
         // another placeholder
@@ -168,58 +168,76 @@ var minimalApp = new function () {
 
         mainTable.innerHTML = "";
 
-        var radioTimestampAsc = document.getElementById("Timestamp-sort-asc");
+        var sortOptions = [
+            "Priority",
+            "Timestamp",
+            "Checkboxes"
+        ];
 
-        if (radioTimestampAsc.checked) {
+        var sortDirections = []
 
-            tableEntries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
-        } else {
+        sortOptions.forEach(function (sortOption) {
 
-            var radioTimestampDesc = document.getElementById("Timestamp-sort-desc");
+            var checkDesc = document.getElementById(sortOption + "-sort-desc");
 
-            if (radioTimestampDesc.checked) {
+            if (checkDesc.checked) {
 
-                tableEntries.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+                var sortDirection = -1;
             } else {
 
-                var radioCheckAsc = document.getElementById("Checkboxes-sort-asc");
+                var sortDirection = 1;
+            };
 
-                if (radioCheckAsc.checked) {
+            sortDirections.push(sortDirection);
+        });
 
-                    tableEntries.sort((a, b) => a.check.toString().localeCompare(b.check.toString()));
-                } else {
+        var sortFunctions = [
+            (a, b) => sortDirections[0] * (a.priority - b.priority),
+            (a, b) => sortDirections[1] * (a.timestamp.localeCompare(b.timestamp)),
+            (a, b) => sortDirections[2] * (a.check.toString().localeCompare(b.check.toString()))
+        ];
 
-                    var radioCheckDesc = document.getElementById("Checkboxes-sort-desc");
+        var sortApply = [];
 
-                    if (radioCheckDesc.checked) {
+        // array.forEach handles breaks and returns too awkwardly to use below
 
-                        tableEntries.sort((a, b) => b.check.toString().localeCompare(a.check.toString()));
-                    } else {
+        for (var entryNumber = 0; entryNumber < sortOptions.length; entryNumber++) {
 
-                        var radioPriorityAsc = document.getElementById("Priority-sort-asc");
+            for (var entryNumber2 = 0; entryNumber2 < sortOptions.length - 1; entryNumber2++) {
 
-                        if (radioPriorityAsc.checked) {
+                var radioButton = document.getElementById(sortOptions[entryNumber2] + "-sort-" + entryNumber);
 
-                            tableEntries.sort((a, b) => a.priority - b.priority);
-                        } else {
+                if (radioButton.checked) {
 
-                            tableEntries.sort((a, b) => b.priority - a.priority);
-                        };
-                    };
+                    break;
                 };
             };
+
+            sortApply.push(sortFunctions[entryNumber2]);
         };
 
-        for (var entryNumber = 0; entryNumber < tableEntries.length; entryNumber++) {
+        tableEntries.sort(function (a, b) {
 
-            minimalApp.appendItemRow(entryNumber);
-        };
+            for (var entryNumber = 0; entryNumber < sortApply.length; entryNumber++) {
+
+                var sorted = sortApply[entryNumber](a, b);
+
+                if (sorted != 0) {
+
+                    return sorted;
+                };
+            };
+
+            return 0;
+        });
+
+        tableEntries.forEach((tableEntry, entryNumber) => minimalApp.appendItemRow(tableEntry, entryNumber));
 
         var cbOptionsCrud = document.getElementById("Options-CRUD");
 
         if (cbOptionsCrud.checked) {
 
-            minimalApp.appendCreateRow(entryNumber);
+            minimalApp.appendCreateRow();
         };
 
         minimalApp.toggleDisabledInput(false);
@@ -265,7 +283,7 @@ var minimalApp = new function () {
         return [valid, nameCell.childNodes[0].value, currentPriority];
     };
 
-    this.createItem = function (entryNumber) {
+    this.createItem = function () {
 
         var itemDict = {};
         var valid;
@@ -274,7 +292,7 @@ var minimalApp = new function () {
             valid,
             itemDict["name"],
             itemDict["priority"]
-        ] = minimalApp.validateAlphanumericInput(entryNumber, 0);
+        ] = minimalApp.validateAlphanumericInput(tableEntries.length, 0);
 
         if (valid) {
 
@@ -290,7 +308,8 @@ var minimalApp = new function () {
                 minimalApp.xhttpBackEnd(itemDict);
             } else {
 
-                itemDict["id"] = entryNumber;
+                // this is not foolproof, but it's not used downstream in the current setup
+                itemDict["id"] = tableEntries.length;
 
                 console.log(itemDict);
 

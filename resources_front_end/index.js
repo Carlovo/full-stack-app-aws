@@ -171,7 +171,8 @@ var minimalApp = new function () {
         var sortOptions = [
             "Priority",
             "Timestamp",
-            "Checkboxes"
+            "Checkboxes",
+            "Name"
         ];
 
         var sortDirections = []
@@ -194,7 +195,8 @@ var minimalApp = new function () {
         var sortFunctions = [
             (a, b) => sortDirections[0] * (a.priority - b.priority),
             (a, b) => sortDirections[1] * (a.timestamp.localeCompare(b.timestamp)),
-            (a, b) => sortDirections[2] * (a.check.toString().localeCompare(b.check.toString()))
+            (a, b) => sortDirections[2] * (a.check.toString().localeCompare(b.check.toString())),
+            (a, b) => sortDirections[3] * (a.name.localeCompare(b.name))
         ];
 
         var sortApply = [];

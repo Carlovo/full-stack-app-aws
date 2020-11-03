@@ -1,6 +1,12 @@
 "use strict";
 
 var mainTable = document.getElementById("mainTable");
+var sortOptions = [
+    "Priority",
+    "Timestamp",
+    "Checkboxes",
+    "Name"
+];
 
 var tableEntries = [];
 var apiUrl = "${api_url}";
@@ -168,14 +174,7 @@ var minimalApp = new function () {
 
         mainTable.innerHTML = "";
 
-        var sortOptions = [
-            "Priority",
-            "Timestamp",
-            "Checkboxes",
-            "Name"
-        ];
-
-        var sortDirections = []
+        var sortDirections = [];
 
         sortOptions.forEach(function (sortOption) {
 
@@ -465,6 +464,46 @@ var minimalApp = new function () {
         nameCell.innerHTML = tableEntries[entryNumber]["name"];
 
         minimalApp.toggleEditItemButtons(entryNumber, false);
+    };
+
+    this.radioButton2D = function (radioButtonClicked) {
+
+        var entryNumber = radioButtonClicked.id.split("-")[2];
+
+        for (var entryNumber2 = 0; entryNumber2 < sortOptions.length; entryNumber2++) {
+
+            var radioButton = document.getElementById(sortOptions[entryNumber2] + "-sort-" + entryNumber);
+
+            if (radioButton.checked && radioButton != radioButtonClicked) {
+
+                radioButton.checked = false;
+                radioButtonClicked = radioButton;
+
+                break;
+            };
+        };
+
+        for (var entryNumber = 0; entryNumber < sortOptions.length; entryNumber++) {
+
+            for (var entryNumber2 = 0; entryNumber2 < sortOptions.length; entryNumber2++) {
+
+                var radioButton = document.getElementById(sortOptions[entryNumber2] + "-sort-" + entryNumber);
+
+                if (radioButton.checked) {
+
+                    break;
+                };
+            };
+
+            if (entryNumber2 == sortOptions.length) {
+
+                var radioButton = document.getElementById(radioButtonClicked.id.split("-")[0] + "-sort-" + entryNumber);
+
+                radioButton.checked = true;
+
+                break;
+            };
+        };
     };
 
     this.toggleEditItemButtons = function (entryNumber, editMode) {

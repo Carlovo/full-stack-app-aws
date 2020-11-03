@@ -232,14 +232,14 @@ var minimalApp = new function () {
             return 0;
         });
 
-        tableEntries.forEach((tableEntry, entryNumber) => minimalApp.appendItemRow(tableEntry, entryNumber));
-
         var cbOptionsCrud = document.getElementById("Options-CRUD");
 
         if (cbOptionsCrud.checked) {
 
             minimalApp.appendCreateRow();
         };
+
+        tableEntries.forEach((tableEntry, entryNumber) => minimalApp.appendItemRow(tableEntry, entryNumber));
 
         minimalApp.toggleDisabledInput(false);
 

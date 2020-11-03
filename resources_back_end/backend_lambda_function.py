@@ -23,14 +23,15 @@ class DatabaseAdapter:
                 "name": item["name"]["S"],
                 "priority": float(item["priority"]["N"]),
                 "check": item["check"]["BOOL"],
-                "timestamp": item["timestamp"]["S"]
+                "timestamp": item["timestamp"]["S"],
+                "modified": item["modified"]["S"]
             }
             for item in response["Items"]
         ]
 
         return items
 
-    def put_item(self, item_id: str, item_name: str, item_priority: float, item_timestamp: str):
+    def put_item(self, item_id: str, item_name: str, item_priority: float, item_timestamp: str, item_modified: str):
         assert type(item_priority) == int or type(item_priority) == float
         item_priority = str(item_priority)
 
@@ -41,7 +42,8 @@ class DatabaseAdapter:
                 "name": {"S": item_name},
                 "priority": {"N": item_priority},
                 "check": {"BOOL": False},
-                "timestamp": {"S": item_timestamp}
+                "timestamp": {"S": item_timestamp},
+                "modified": {"S": item_modified}
             }
         )
 
@@ -55,7 +57,7 @@ class DatabaseAdapter:
             }
         )
 
-    def update_item(self, item_id: str, item_name: str, item_priority: float, item_check: str):
+    def update_item(self, item_id: str, item_name: str, item_priority: float, item_check: str, item_modified: str):
         assert type(item_priority) == int or type(item_priority) == float
         item_priority = str(item_priority)
 
@@ -66,11 +68,12 @@ class DatabaseAdapter:
                     "S": item_id
                 }
             },
-            UpdateExpression="SET #n = :new_name, #p = :new_priority, #c = :new_check",
+            UpdateExpression="SET #n = :new_name, #p = :new_priority, #c = :new_check, #m = :new_modified",
             ExpressionAttributeNames={
                 "#n": "name",
                 "#p": "priority",
-                "#c": "check"
+                "#c": "check",
+                "#m": "modified"
             },
             ExpressionAttributeValues={
                 ":new_name": {
@@ -81,6 +84,9 @@ class DatabaseAdapter:
                 },
                 ":new_check": {
                     "BOOL": item_check
+                },
+                ":new_modified": {
+                    "S": item_modified
                 }
             }
         )
@@ -105,7 +111,8 @@ def lambda_handler(event, context):
                 item_id=request["id"],
                 item_name=request["name"],
                 item_priority=request["priority"],
-                item_check=request["check"]
+                item_check=request["check"],
+                item_modified=request["modified"]
             )
         else:
             new_id = str(uuid.uuid4())
@@ -114,7 +121,8 @@ def lambda_handler(event, context):
                 item_id=new_id,
                 item_name=request["name"],
                 item_priority=request["priority"],
-                item_timestamp=request["timestamp"]
+                item_timestamp=request["timestamp"],
+                item_modified=request["modified"]
             )
 
     database_scan = database_adapter.scan_database()

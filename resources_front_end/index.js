@@ -5,7 +5,8 @@ var sortOptions = [
     "Priority",
     "Timestamp",
     "Checkboxes",
-    "Name"
+    "Name",
+    "Modified"
 ];
 
 var tableEntries = [];
@@ -42,6 +43,17 @@ var minimalApp = new function () {
             timestampCell.style.fontStyle = "italic";
             timestampCell.innerHTML = tableEntry["timestamp"];
             timestampCell.setAttribute("id", "Timestamp-" + entryNumber);
+        };
+
+        var cbOptionsModified = document.getElementById("Options-Modified");
+
+        if (cbOptionsModified.checked) {
+
+            var modifiedCell = tr.insertCell(-1);
+            modifiedCell.style.fontSize = "x-small";
+            modifiedCell.style.fontStyle = "italic";
+            modifiedCell.innerHTML = tableEntry["modified"];
+            modifiedCell.setAttribute("id", "Modified-" + entryNumber);
         };
 
         var cbOptionsCheck = document.getElementById("Options-Checkboxes");
@@ -114,6 +126,14 @@ var minimalApp = new function () {
 
             var timestampCell = tr.insertCell(-1);
             timestampCell.setAttribute("id", "Timestamp-" + tableEntries.length);
+        };
+
+        var cbOptionsModified = document.getElementById("Options-Modified");
+
+        if (cbOptionsModified.checked) {
+
+            var modifiedCell = tr.insertCell(-1);
+            modifiedCell.setAttribute("id", "Modified-" + tableEntries.length);
         };
 
         var cbOptionsCheck = document.getElementById("Options-Checkboxes");
@@ -195,7 +215,8 @@ var minimalApp = new function () {
             (a, b) => sortDirections[0] * (a.priority - b.priority),
             (a, b) => sortDirections[1] * (a.timestamp.localeCompare(b.timestamp)),
             (a, b) => sortDirections[2] * (a.check.toString().localeCompare(b.check.toString())),
-            (a, b) => sortDirections[3] * (a.name.localeCompare(b.name))
+            (a, b) => sortDirections[3] * (a.name.localeCompare(b.name)),
+            (a, b) => sortDirections[4] * (a.modified.localeCompare(b.modified))
         ];
 
         var sortApply = [];
@@ -299,6 +320,7 @@ var minimalApp = new function () {
 
             itemDict["check"] = false;
             itemDict["timestamp"] = minimalApp.createCustomTimestamp();
+            itemDict["modified"] = itemDict["timestamp"];
 
             var cbOptionsOnline = document.getElementById("Options-Online");
 
@@ -335,6 +357,8 @@ var minimalApp = new function () {
 
         if (valid) {
 
+            itemDict["modified"] = minimalApp.createCustomTimestamp();
+
             var cbOptionsOnline = document.getElementById("Options-Online");
 
             if (cbOptionsOnline.checked) {
@@ -360,6 +384,7 @@ var minimalApp = new function () {
 
         itemDict["operation"] = "Save";
         itemDict["check"] = inputElement.checked;
+        itemDict["modified"] = minimalApp.createCustomTimestamp();
 
         var cbOptionsOnline = document.getElementById("Options-Online");
 

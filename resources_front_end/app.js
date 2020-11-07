@@ -10,6 +10,7 @@ var sortOptions = [
 ];
 
 var tableEntries = [];
+// Templated by Terraform
 var apiUrl = "${api_url}";
 
 var minimalApp = new function () {

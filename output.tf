@@ -7,5 +7,5 @@ output "cloudfront_endpoint" {
 }
 
 output "insecure_only_s3_endpoint" {
-  value = aws_s3_bucket.minimal_frontend_bucket.bucket_regional_domain_name
+  value = aws_s3_bucket.frontend_bucket.bucket_regional_domain_name
 }

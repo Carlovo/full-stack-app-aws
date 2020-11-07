@@ -5,7 +5,7 @@ resource "aws_cloudfront_origin_access_identity" "minimal_cloudfront_identity" {
 data "aws_iam_policy_document" "cloudfront_s3_policy" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.minimal_frontend_bucket.arn}/*"]
+    resources = ["${aws_s3_bucket.frontend_bucket.arn}/*"]
 
     principals {
       type        = "AWS"
@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "cloudfront_s3_policy" {
 resource "aws_s3_bucket_policy" "cloudfront_s3_policy" {
   count = var.insecure ? 0 : 1
 
-  bucket = aws_s3_bucket.minimal_frontend_bucket.id
+  bucket = aws_s3_bucket.frontend_bucket.id
   policy = data.aws_iam_policy_document.cloudfront_s3_policy.json
 }
 

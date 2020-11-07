@@ -14,7 +14,7 @@ resource "aws_s3_bucket_object" "index" {
   acl          = var.insecure ? "public-read" : "private"
 
   content = templatefile(
-    "./resources_front_end/index.html",
+    "./index.html",
     {
       app_links = join("<br><br>\n", local.app_html_links)
     }

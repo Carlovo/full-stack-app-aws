@@ -5,7 +5,7 @@ resource "aws_s3_bucket_object" "app_html" {
   acl          = var.insecure ? "public-read" : "private"
 
   content = templatefile(
-    "./resources_front_end/app.html",
+    "${path.module}/app.html",
     {
       app_name = var.app_page_name
     }
@@ -18,7 +18,7 @@ resource "aws_s3_bucket_object" "app_script" {
   acl    = var.insecure ? "public-read" : "private"
 
   content = templatefile(
-    "./resources_front_end/app.js",
+    "${path.module}/app.js",
     {
       api_url = var.api_invoke_url
     }

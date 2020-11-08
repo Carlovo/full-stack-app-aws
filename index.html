@@ -6,11 +6,24 @@
 </head>
 
 <body>
-    <div style="text-align: center;" id="main">
+    <div style="text-align: center;width: min-content;margin: auto;" id="main">
         <p>CRUD apps:</p>
         <!-- Templated by Terraform -->
         ${app_links}
     </div>
 </body>
+
+<script>
+    var mainDiv = document.getElementById("main");
+
+    // scale contents to smallest window dimension and center
+    var scale = 0.5 * Math.min(
+        window.innerHeight / mainDiv.offsetWidth,
+        window.innerWidth / mainDiv.offsetWidth
+    );
+
+    mainDiv.style["transform"] = "scale(" + scale + ")";
+    mainDiv.style["transformOrigin"] = "center top";
+</script>
 
 </html>

@@ -1,5 +1,5 @@
-resource "aws_dynamodb_table" "minimal_backend_table" {
-  name           = aws_s3_bucket.frontend_bucket.id
+resource "aws_dynamodb_table" "main" {
+  name           = var.resource_name
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5

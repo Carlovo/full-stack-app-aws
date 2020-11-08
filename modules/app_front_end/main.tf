@@ -1,5 +1,5 @@
 resource "aws_s3_bucket_object" "app_html" {
-  bucket       = var.frontend_bucket
+  bucket       = var.front_end_bucket
   key          = "${var.app_page_name}.html"
   content_type = "text/html"
   acl          = var.insecure ? "public-read" : "private"
@@ -13,7 +13,7 @@ resource "aws_s3_bucket_object" "app_html" {
 }
 
 resource "aws_s3_bucket_object" "app_script" {
-  bucket = var.frontend_bucket
+  bucket = var.front_end_bucket
   key    = "${var.app_page_name}.js"
   acl    = var.insecure ? "public-read" : "private"
 

@@ -1,4 +1,4 @@
-resource "aws_s3_bucket" "frontend_bucket" {
+resource "aws_s3_bucket" "front_end" {
   # bucket policy is managed in a separate resource to avoid cyclic dependancies
   acl = var.insecure ? "public-read" : "private"
 }
@@ -8,7 +8,7 @@ locals {
 }
 
 resource "aws_s3_bucket_object" "index" {
-  bucket       = aws_s3_bucket.frontend_bucket.id
+  bucket       = aws_s3_bucket.front_end.id
   key          = "index.html"
   content_type = "text/html"
   acl          = var.insecure ? "public-read" : "private"
@@ -26,8 +26,8 @@ module "app_front_ends" {
 
   source = "./modules/app_front_end"
 
-  frontend_bucket = aws_s3_bucket.frontend_bucket.bucket
-  app_page_name   = each.key
-  api_invoke_url  = aws_api_gateway_deployment.minimal.invoke_url
-  insecure        = var.insecure
+  front_end_bucket = aws_s3_bucket.front_end.bucket
+  app_page_name    = each.key
+  api_invoke_url   = module.app_back_end.api_invoke_url
+  insecure         = var.insecure
 }

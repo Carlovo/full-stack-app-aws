@@ -1,4 +1,4 @@
-variable "frontend_bucket" {
+variable "front_end_bucket" {
   type        = string
   description = "Name of the bucket in which the app front end pages must be stored."
 }

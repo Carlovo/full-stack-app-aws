@@ -12,13 +12,13 @@ module "certificate_and_validation" {
   zone_id      = data.aws_route53_zone.selected[0].zone_id
 }
 
-resource "aws_cloudfront_distribution" "minimal_distribution" {
+resource "aws_cloudfront_distribution" "front_end" {
   origin {
-    domain_name = aws_s3_bucket.frontend_bucket.bucket_regional_domain_name
-    origin_id   = aws_s3_bucket.frontend_bucket.id
+    domain_name = aws_s3_bucket.front_end.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.front_end.id
 
     s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.minimal_cloudfront_identity.cloudfront_access_identity_path
+      origin_access_identity = aws_cloudfront_origin_access_identity.s3_access.cloudfront_access_identity_path
     }
   }
 
@@ -30,7 +30,7 @@ resource "aws_cloudfront_distribution" "minimal_distribution" {
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = aws_s3_bucket.frontend_bucket.id
+    target_origin_id = aws_s3_bucket.front_end.id
 
     forwarded_values {
       query_string = false
@@ -77,6 +77,6 @@ module "alias_a_records" {
   dns_record_name = each.key
 
   hosted_zone_id       = data.aws_route53_zone.selected[0].zone_id
-  alias_domain_name    = aws_cloudfront_distribution.minimal_distribution.domain_name
-  alias_hosted_zone_id = aws_cloudfront_distribution.minimal_distribution.hosted_zone_id
+  alias_domain_name    = aws_cloudfront_distribution.front_end.domain_name
+  alias_hosted_zone_id = aws_cloudfront_distribution.front_end.hosted_zone_id
 }

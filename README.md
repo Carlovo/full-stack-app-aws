@@ -33,6 +33,15 @@ The `alternate_domain_name` has to be an apex domain name.
 
 > Note: most AWS resources deployed with this code typically cost no money under bare usage, but this is not the case for custom domain names and other resources in Route53.
 
+### Multiple CRUD app pages
+
+Need to keep a shopping list next to your to-do list?
+Well that and any other more CRUD apps can be deployed at the same time with this code.
+
+Run the regular `terraform init` as normal.
+Run `terraform apply -var='apps=["to-do","shopping-list"]'` and Terraform will deploy extra sets of resources to provide you with multiple CRUD apps under the same (custom) domain name.
+The names in the list are used to generate names of AWS resources, so names must be unique in the list and cannot contain too eccentric characters.
+
 ### Faster testing during development
 
 If you want to test new code, you would have to wait until CloudFront updates.

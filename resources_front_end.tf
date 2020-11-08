@@ -28,6 +28,6 @@ module "app_front_ends" {
 
   front_end_bucket = aws_s3_bucket.front_end.bucket
   app_page_name    = each.key
-  api_invoke_url   = module.app_back_end.api_invoke_url
+  api_invoke_url   = module.app_back_end[each.key].api_invoke_url
   insecure         = var.insecure
 }

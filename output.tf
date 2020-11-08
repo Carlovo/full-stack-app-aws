@@ -1,5 +1,5 @@
 output "api_url" {
-  value = module.app_back_end.api_invoke_url
+  value = module.app_back_end
 }
 
 output "cloudfront_endpoint" {

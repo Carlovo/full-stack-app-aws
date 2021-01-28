@@ -214,6 +214,35 @@
             </table>
             <input type="button" value="Apply sort" onclick="minimalApp.buildMainTable()">
         </details>
+        <details>
+            <summary style="margin: 24px 0px;">
+                Bulk Operations
+            </summary>
+            <table id="viewTable">
+                <tbody>
+                    <tr>
+                        <td colspan="3">Multiline input</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input id="Check-Bulk-Multiline" type="checkbox">
+                        </td>
+                        <td>
+                            <input id="Priority-Bulk-Multiline" type="number" value=0 style="width: 40px;">
+                        </td>
+                        <td>
+                            <textarea id="Name-Bulk-Multiline" rows="4"
+                                cols="40">input&#13;&#10;multiline&#13;&#10;text&#13;&#10;here</textarea>
+                        </td>
+                    <tr>
+                        <td colspan="3">
+                            <input type="button" value="Submit" onclick="minimalApp.inputBulkMultiline()">
+                        </td>
+                    </tr>
+                    </tr>
+                </tbody>
+            </table>
+        </details>
     </div>
 </body>
 

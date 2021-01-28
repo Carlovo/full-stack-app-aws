@@ -114,6 +114,19 @@ def lambda_handler(event, context):
                 item_check=request["check"],
                 item_modified=request["modified"]
             )
+        elif request["operation"] == "BulkMultiline":
+            names = request["name"].splitlines()
+
+            for name in names:
+                new_id = str(uuid.uuid4())
+
+                database_adapter.put_item(
+                    item_id=new_id,
+                    item_name=name,
+                    item_priority=request["priority"],
+                    item_timestamp=request["timestamp"],
+                    item_modified=request["modified"]
+                )
         else:
             new_id = str(uuid.uuid4())
 

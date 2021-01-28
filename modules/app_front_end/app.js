@@ -420,6 +420,40 @@ var minimalApp = new function () {
         };
     };
 
+    this.inputBulkMultiline = function () {
+
+        var cbOptionsOnline = document.getElementById("Options-Online");
+
+        if (cbOptionsOnline.checked) {
+
+            var taName = document.getElementById("Name-Bulk-Multiline");
+            var nbPriority = document.getElementById("Priority-Bulk-Multiline");
+
+            if (taName.value == "" || nbPriority.value == "") {
+
+                alert("bulk input fields may not be empty");
+            } else {
+
+                var cbCheck = document.getElementById("Check-Bulk-Multiline");
+
+                var itemDict = {};
+
+                itemDict["name"] = taName.value;
+                itemDict["priority"] = Number(nbPriority.value);
+                itemDict["check"] = cbCheck.checked;
+                itemDict["timestamp"] = minimalApp.createCustomTimestamp();
+                itemDict["modified"] = itemDict["timestamp"];
+
+                itemDict["operation"] = "BulkMultiline";
+
+                minimalApp.xhttpBackEnd(itemDict);
+            };
+        } else {
+
+            alert("Bulk operations can only be used in online mode");
+        };
+    };
+
     this.xhttpBackEnd = function (itemDict) {
 
         var payloadText = JSON.stringify(itemDict);

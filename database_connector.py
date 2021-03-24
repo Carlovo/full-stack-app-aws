@@ -10,9 +10,9 @@ class DatabaseAdapter:
     # make sure that something actually is a number before implicit conversion
     # and convert back before returning database scans
 
-    def __init__(self):
+    def __init__(self, table_name_suffix: str):
+        self.db_name = os.getenv("table_name_prefix") + table_name_suffix
         self.db_client = boto3.client("dynamodb")
-        self.db_name = os.getenv("table_name")
 
     def scan_database(self):
         response = self.db_client.scan(TableName=self.db_name)
@@ -95,48 +95,45 @@ class DatabaseAdapter:
 def lambda_handler(event, context):
     print(event)
 
-    database_adapter = DatabaseAdapter()
+    request = json.loads(event["body"])
 
-    # check for POST, otherwise default to GET
-    if event["httpMethod"] == "POST":
+    database_adapter = DatabaseAdapter(table_name_suffix=request["table"])
 
-        request = json.loads(event["body"])
+    # check operation type, default to GET
+    if request["operation"] == "Delete":
+        database_adapter.delete_item(item_id=request["id"])
+    # there are multiple actions in the front end that can update the table
+    elif request["operation"] == "Save":
+        database_adapter.update_item(
+            item_id=request["id"],
+            item_name=request["name"],
+            item_priority=request["priority"],
+            item_check=request["check"],
+            item_modified=request["modified"]
+        )
+    elif request["operation"] == "BulkMultiline":
+        names = request["name"].splitlines()
 
-        # check operation type, default to PUT/CREATE
-        if request["operation"] == "Delete":
-            database_adapter.delete_item(item_id=request["id"])
-        # there are multiple actions in the front end that can update the table
-        elif request["operation"] == "Save":
-            database_adapter.update_item(
-                item_id=request["id"],
-                item_name=request["name"],
-                item_priority=request["priority"],
-                item_check=request["check"],
-                item_modified=request["modified"]
-            )
-        elif request["operation"] == "BulkMultiline":
-            names = request["name"].splitlines()
-
-            for name in names:
-                new_id = str(uuid.uuid4())
-
-                database_adapter.put_item(
-                    item_id=new_id,
-                    item_name=name,
-                    item_priority=request["priority"],
-                    item_timestamp=request["timestamp"],
-                    item_modified=request["modified"]
-                )
-        else:
+        for name in names:
             new_id = str(uuid.uuid4())
 
             database_adapter.put_item(
                 item_id=new_id,
-                item_name=request["name"],
+                item_name=name,
                 item_priority=request["priority"],
                 item_timestamp=request["timestamp"],
                 item_modified=request["modified"]
             )
+    elif request["operation"] == "Create":
+        new_id = str(uuid.uuid4())
+
+        database_adapter.put_item(
+            item_id=new_id,
+            item_name=request["name"],
+            item_priority=request["priority"],
+            item_timestamp=request["timestamp"],
+            item_modified=request["modified"]
+        )
 
     database_scan = database_adapter.scan_database()
 

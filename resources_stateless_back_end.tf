@@ -2,12 +2,12 @@
 
 data "archive_file" "main_function_package" {
   type        = "zip"
-  source_file = "${path.module}/database_connector.py"
-  output_path = "${path.module}/database_connector.zip"
+  source_file = "./database_connector.py"
+  output_path = "./database_connector.zip"
 }
 
 resource "aws_lambda_function" "main" {
-  function_name = var.resource_name
+  function_name = aws_s3_bucket.front_end.id
 
   filename         = data.archive_file.main_function_package.output_path
   source_code_hash = data.archive_file.main_function_package.output_base64sha256
@@ -19,7 +19,7 @@ resource "aws_lambda_function" "main" {
 
   environment {
     variables = {
-      table_name = aws_dynamodb_table.main.name
+      table_name_prefix = local.unique_name_prefix
     }
   }
 }
@@ -27,7 +27,7 @@ resource "aws_lambda_function" "main" {
 # API Gateway
 
 resource "aws_api_gateway_rest_api" "main" {
-  name = var.resource_name
+  name = aws_s3_bucket.front_end.id
 }
 
 resource "aws_api_gateway_method" "proxy_root" {

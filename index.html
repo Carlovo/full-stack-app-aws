@@ -2,28 +2,260 @@
 <html>
 
 <head>
-    <title>Index of CRUD app pages</title>
+    <meta charset="UTF-8">
+    <title>CRUD app</title>
 </head>
 
 <body>
-    <div style="text-align: center;width: min-content;margin: auto;" id="main">
-        <p>CRUD apps:</p>
-        <!-- Templated by Terraform -->
-        ${app_links}
+    <div id="container">
+        <table id="mainTable">
+            <thead>
+                <th>
+                    Tables:
+                </th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <!-- Templated by Terraform -->
+                        ${table_query_links}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <details id="viewDetails" style="display: none;">
+            <summary style="margin: 24px 0px;">
+                View Options
+            </summary>
+            <table id="viewTable">
+                <tbody>
+                    <tr>
+                        <td>Timestamp created</td>
+                        <td>
+                            <input type="checkbox" id="Options-Timestamp" onclick="minimalApp.buildMainTable()">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Timestamp modified</td>
+                        <td>
+                            <input type="checkbox" id="Options-Modified" onclick="minimalApp.buildMainTable()">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Checkboxes</td>
+                        <td>
+                            <input type="checkbox" id="Options-Checkboxes" onclick="minimalApp.buildMainTable()">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Priority</td>
+                        <td>
+                            <input type="checkbox" id="Options-Priority" onclick="minimalApp.buildMainTable()">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>CRUD</td>
+                        <td>
+                            <input type="checkbox" checked="checked" id="Options-CRUD"
+                                onclick="minimalApp.buildMainTable()">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Online</td>
+                        <td>
+                            <input type="checkbox" checked="checked" id="Options-Online"
+                                onclick="minimalApp.renderPage()">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </details>
+        <details id="sortDetails" style="display: none;">
+            <summary style="margin: 24px 0px;">
+                Sort Options
+            </summary>
+            <table id="sortTable">
+                <thead>
+                    <th>Property</th>
+                    <th colspan="5" style="text-align: center;">Order</th>
+                    <th>Reverse</th>
+                </thead>
+                <thead>
+                    <th></th>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
+                    <th style="text-align: center;">&uarr;/&darr;</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Priority</td>
+                        <td>
+                            <input type="radio" name="Priority-sort" id="Priority-sort-0"
+                                onclick="minimalApp.radioButton2D(this)" checked="checked">
+                        </td>
+                        <td>
+                            <input type="radio" name="Priority-sort" id="Priority-sort-1"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Priority-sort" id="Priority-sort-2"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Priority-sort" id="Priority-sort-3"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Priority-sort" id="Priority-sort-4"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" id="Priority-sort-desc">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Timestamp created</td>
+                        <td>
+                            <input type="radio" name="Timestamp-sort" id="Timestamp-sort-0"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Timestamp-sort" id="Timestamp-sort-1"
+                                onclick="minimalApp.radioButton2D(this)" checked="checked">
+                        </td>
+                        <td>
+                            <input type="radio" name="Timestamp-sort" id="Timestamp-sort-2"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Timestamp-sort" id="Timestamp-sort-3"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Timestamp-sort" id="Timestamp-sort-4"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" id="Timestamp-sort-desc" checked="checked">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Checkboxes</td>
+                        <td>
+                            <input type="radio" name="Checkboxes-sort" id="Checkboxes-sort-0"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Checkboxes-sort" id="Checkboxes-sort-1"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Checkboxes-sort" id="Checkboxes-sort-2"
+                                onclick="minimalApp.radioButton2D(this)" checked="checked">
+                        </td>
+                        <td>
+                            <input type="radio" name="Checkboxes-sort" id="Checkboxes-sort-3"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Checkboxes-sort" id="Checkboxes-sort-4"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" id="Checkboxes-sort-desc">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Name</td>
+                        <td>
+                            <input type="radio" name="Name-sort" id="Name-sort-0"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Name-sort" id="Name-sort-1"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Name-sort" id="Name-sort-2"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Name-sort" id="Name-sort-3"
+                                onclick="minimalApp.radioButton2D(this)" checked="checked">
+                        </td>
+                        <td>
+                            <input type="radio" name="Name-sort" id="Name-sort-4"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" id="Name-sort-desc">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Timestamp modified</td>
+                        <td>
+                            <input type="radio" name="Modified-sort" id="Modified-sort-0"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Modified-sort" id="Modified-sort-1"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Modified-sort" id="Modified-sort-2"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Modified-sort" id="Modified-sort-3"
+                                onclick="minimalApp.radioButton2D(this)">
+                        </td>
+                        <td>
+                            <input type="radio" name="Modified-sort" id="Modified-sort-4"
+                                onclick="minimalApp.radioButton2D(this)" checked="checked">
+                        </td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" id="Modified-sort-desc" checked="checked">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <input type="button" value="Apply sort" onclick="minimalApp.buildMainTable()">
+        </details>
+        <details id="bulkDetails" style="display: none;">
+            <summary style="margin: 24px 0px;">
+                Bulk Operations
+            </summary>
+            <table id="bulkTable">
+                <tbody>
+                    <tr>
+                        <td colspan="3">Multiline input</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input id="Check-Bulk-Multiline" type="checkbox">
+                        </td>
+                        <td>
+                            <input id="Priority-Bulk-Multiline" type="number" value=0 style="width: 40px;">
+                        </td>
+                        <td>
+                            <textarea id="Name-Bulk-Multiline" rows="4"
+                                cols="40">input&#13;&#10;multiline&#13;&#10;text&#13;&#10;here</textarea>
+                        </td>
+                    <tr>
+                        <td colspan="3">
+                            <input type="button" value="Submit" onclick="minimalApp.inputBulkMultiline()">
+                        </td>
+                    </tr>
+                    </tr>
+                </tbody>
+            </table>
+        </details>
     </div>
 </body>
 
-<script>
-    var mainDiv = document.getElementById("main");
-
-    // scale contents to smallest window dimension and center
-    var scale = 0.5 * Math.min(
-        window.innerHeight / mainDiv.offsetWidth,
-        window.innerWidth / mainDiv.offsetWidth
-    );
-
-    mainDiv.style["transform"] = "scale(" + scale + ")";
-    mainDiv.style["transformOrigin"] = "center top";
-</script>
+<script src="index.js"></script>
 
 </html>

@@ -1,5 +1,5 @@
 output "api_url" {
-  value = module.app_back_end
+  value = aws_api_gateway_deployment.main.invoke_url
 }
 
 output "cloudfront_endpoint" {

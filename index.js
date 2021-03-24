@@ -1,7 +1,10 @@
 "use strict";
 
-var mainTable = document.getElementById("mainTable");
-var sortOptions = [
+const containerDiv = document.getElementById("container");
+const mainTable = document.getElementById("mainTable");
+const mainTableDefaultHTML = mainTable.innerHTML;
+
+const sortOptions = [
     "Priority",
     "Timestamp",
     "Checkboxes",
@@ -11,7 +14,10 @@ var sortOptions = [
 
 var tableEntries = [];
 // Templated by Terraform
-var apiUrl = "${api_url}";
+const apiUrl = "${api_url}";
+
+const queryParams = new URLSearchParams(window.location.search);
+const queryTable = queryParams.get("table");
 
 var minimalApp = new function () {
 
@@ -454,20 +460,41 @@ var minimalApp = new function () {
         };
     };
 
-    this.xhttpBackEnd = function (itemDict) {
+    this.xhttpBackEnd = function (payloadDict) {
 
-        var payloadText = JSON.stringify(itemDict);
+        payloadDict["table"] = queryTable;
+
+        var payloadText = JSON.stringify(payloadDict);
         var xhttp = new XMLHttpRequest();
 
         console.log(payloadText);
 
         xhttp.onreadystatechange = function () {
 
-            if (this.readyState == 4 && this.status == 200) {
+            if (this.readyState == 4) {
 
-                tableEntries = JSON.parse(this.responseText);
+                if (this.status == 200) {
 
-                minimalApp.buildMainTable();
+                    tableEntries = JSON.parse(this.responseText);
+
+                    minimalApp.buildMainTable();
+                } else {
+
+                    alert("invalid request");
+
+                    var viewDetails = document.getElementById("viewDetails");
+                    viewDetails.setAttribute("style", "display:none");
+
+                    var sortDetails = document.getElementById("sortDetails");
+                    sortDetails.setAttribute("style", "display:none");
+
+                    var bulkDetails = document.getElementById("bulkDetails");
+                    bulkDetails.setAttribute("style", "display:none");
+
+                    mainTable.innerHTML = mainTableDefaultHTML;
+
+                    minimalApp.scaleContent();
+                };
             };
         };
 
@@ -604,9 +631,6 @@ var minimalApp = new function () {
 
     this.scaleContent = function () {
 
-        var containerDiv = document.getElementById("container");
-        var mainTable = document.getElementById("mainTable");
-
         containerDiv.style["transform"] = "initial";
         containerDiv.style["transformOrigin"] = "initial";
 
@@ -622,23 +646,32 @@ var minimalApp = new function () {
         containerDiv.style["transformOrigin"] = "center top";
     };
 
-    this.loadBuildMainTable = function () {
+    this.renderPage = function () {
 
-        var xhttp = new XMLHttpRequest();
+        if (typeof queryTable === "string" && queryTable.length > 0) {
 
-        xhttp.onreadystatechange = function () {
+            var itemDict = { "operation": "Get" };
 
-            if (this.readyState == 4 && this.status == 200) {
+            minimalApp.xhttpBackEnd(itemDict);
 
-                tableEntries = JSON.parse(this.responseText);
+            mainTable.innerHTML = "";
+            var tr = mainTable.insertRow(-1);
+            var td = tr.insertCell(-1);
+            td.innerHTML = "loading...";
 
-                minimalApp.buildMainTable();
-            };
+            var viewDetails = document.getElementById("viewDetails");
+            viewDetails.setAttribute("style", "display:block");
+
+            var sortDetails = document.getElementById("sortDetails");
+            sortDetails.setAttribute("style", "display:block");
+
+            var bulkDetails = document.getElementById("bulkDetails");
+            bulkDetails.setAttribute("style", "display:block");
+        } else {
+
+            minimalApp.scaleContent();
         };
-
-        xhttp.open("GET", apiUrl, true);
-        xhttp.send();
     };
 };
 
-minimalApp.loadBuildMainTable();
+minimalApp.renderPage();

@@ -13,10 +13,11 @@ variable "insecure" {
 variable "tables" {
   type        = set(string)
   default     = ["default"]
-  description = "List of unique names (set of strings) for which the CRUD app will created a separate table."
+  description = "List of unique names (set of strings) for which the CRUD app will create a separate table."
 }
 
 locals {
   alternate_domain_names = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, "www.${var.alternate_domain_name}"]
-  unique_name_prefix     = "tf-${split("-", aws_s3_bucket.front_end.id)[1]}-"
+  # Using the full S3 bucket name would make a too long name for DynamoDB
+  unique_name_prefix = "tf-${split("-", aws_s3_bucket.front_end.id)[1]}-"
 }

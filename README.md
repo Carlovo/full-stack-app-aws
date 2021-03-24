@@ -12,7 +12,7 @@ Also, I think Terraform gives you a clearer picture of what is going on beneath 
 ## Deployment
 
 You need programmatic access to an AWS account and have Terraform on your machine to deploy this application.
-This app can be deployed using Terraform v0.13.5 with provider.aws v3.14.1 and provider.archive v2.0.0, but later versions usually work in Terraform as well.
+This app can be deployed using Terraform v0.14.8 with provider.aws v3.14.1 and provider.archive v2.0.0, but later versions usually work in Terraform as well.
 
 If you don't know Terraform or how to use it, please see [their documentation](https://learn.hashicorp.com/terraform).
 
@@ -33,13 +33,13 @@ The `alternate_domain_name` has to be an apex domain name.
 
 > Note: most AWS resources deployed with this code typically cost no money under bare usage, but this is not the case for custom domain names and other resources in Route53.
 
-### Multiple CRUD app pages
+### Connect to multiple tables
 
 Need to keep a shopping list next to your to-do list?
-Well that and any other more CRUD apps can be deployed at the same time with this code.
+Well that and any other more tables can be deployed at the same time with this code.
 
 Run the regular `terraform init` as normal.
-Run `terraform apply -var='apps=["to-do","shopping-list"]'` and Terraform will deploy extra sets of resources to provide you with multiple CRUD apps under the same (custom) domain name.
+Run `terraform apply -var='apps=["to-do","shopping-list"]'` and Terraform will deploy an extra DynamoDB table to provide you with multiple databases with which the rest of the app can work.
 The names in the list are used to generate names of AWS resources, so names must be unique in the list and cannot contain too eccentric characters.
 
 ### Faster testing during development

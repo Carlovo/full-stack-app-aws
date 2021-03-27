@@ -25,7 +25,7 @@ resource "aws_cloudfront_distribution" "front_end" {
   aliases             = local.alternate_domain_names
   enabled             = true
   is_ipv6_enabled     = true
-  default_root_object = "index.html"
+  default_root_object = aws_s3_bucket_object.index.key
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
@@ -50,6 +50,12 @@ resource "aws_cloudfront_distribution" "front_end" {
     geo_restriction {
       restriction_type = "none"
     }
+  }
+
+  custom_error_response {
+    error_code         = 404
+    response_code      = 404
+    response_page_path = "/${aws_s3_bucket_object.page_404.key}"
   }
 
   # conditional nested blocks are not supported by Terraform, therefore this hack

@@ -34,3 +34,12 @@ resource "aws_s3_bucket_object" "script" {
     }
   )
 }
+
+resource "aws_s3_bucket_object" "page_404" {
+  bucket       = aws_s3_bucket.front_end.id
+  key          = "404.html"
+  content_type = "text/html"
+  acl          = var.insecure ? "public-read" : "private"
+
+  content = file("./404.html")
+}

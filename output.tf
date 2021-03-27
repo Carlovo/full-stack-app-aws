@@ -1,5 +1,5 @@
-output "api_url" {
-  value = aws_api_gateway_deployment.main.invoke_url
+output "apiapi_gateway_invoke_url" {
+  value = aws_api_gateway_deployment.crud.invoke_url
 }
 
 output "cloudfront_endpoint" {

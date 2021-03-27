@@ -22,7 +22,7 @@ Run the regular `terraform init` and `terraform apply` command and everything sh
 
 ### Custom domain name
 
-Using this code, you can put a custom domain name from Route53 in front of your CloudFront distribution as well.
+Using this code, you can put a custom domain name from Route53 in front of your website/app as well.
 Terraform can not register a domain name in Route53, so that is an extra manual prerequisite.
 See [the AWS documentation](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/registrar.html) on how to register a domain name with Route53.
 You can create all the required connections between CloudFront and Route53 by then following the steps below.

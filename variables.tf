@@ -17,7 +17,8 @@ variable "tables" {
 }
 
 locals {
-  alternate_domain_names = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, "www.${var.alternate_domain_name}"]
+  front_end_alternate_domain_names = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, "www.${var.alternate_domain_name}"]
+  back_end_alternate_domain_name = "api.${var.alternate_domain_name}"
   # Using the full S3 bucket name would make a too long name for DynamoDB
   unique_name_prefix = "tf-${split("-", aws_s3_bucket.front_end.id)[1]}-"
 }

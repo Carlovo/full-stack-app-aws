@@ -39,13 +39,61 @@ data "aws_iam_policy_document" "function_assume_role_policy" {
   }
 }
 
-resource "aws_iam_role" "function_assume_role" {
-  name = "${aws_s3_bucket.front_end.id}-lambda-dynamodb"
+data "aws_iam_policy_document" "api_gateway_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
 
-  assume_role_policy = data.aws_iam_policy_document.function_assume_role_policy.json
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+  }
 }
 
-data "aws_iam_policy_document" "function_permissions" {
+resource "aws_iam_role" "api_gateway_logging" {
+  count = var.api_gateway_log_role ? 1 : 0
+
+  # There can only be one
+  # per region
+  name = "api-gateway-cloudwatch-${data.aws_region.current.name}"
+
+  assume_role_policy = data.aws_iam_policy_document.api_gateway_assume_role_policy.json
+}
+
+data "aws_iam_policy_document" "api_gateway_logging" {
+  count = var.api_gateway_log_role ? 1 : 0
+
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+      "logs:PutLogEvents",
+      "logs:GetLogEvents",
+      "logs:FilterLogEvents"
+    ]
+    # this seems okay, because it's basically a service linked role
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "api_gateway_logging" {
+  count = var.api_gateway_log_role ? 1 : 0
+
+  name = aws_iam_role.api_gateway_logging[0].name
+  role = aws_iam_role.api_gateway_logging[0].id
+
+  policy = data.aws_iam_policy_document.api_gateway_logging[0].json
+}
+
+resource "aws_iam_role" "api_permissions" {
+  name = "${aws_s3_bucket.front_end.id}-api-gateway-dynamodb"
+
+  assume_role_policy = data.aws_iam_policy_document.api_gateway_assume_role_policy.json
+}
+
+data "aws_iam_policy_document" "api_permissions" {
   statement {
     actions = [
       "dynamodb:Scan",
@@ -55,19 +103,11 @@ data "aws_iam_policy_document" "function_permissions" {
     ]
     resources = [for table in var.tables : aws_dynamodb_table.main[table].arn]
   }
-
-  statement {
-    actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-    resources = ["${aws_cloudwatch_log_group.lambda_function.arn}:*"]
-  }
 }
 
-resource "aws_iam_role_policy" "function_permissions" {
-  name = "${aws_s3_bucket.front_end.id}-lambda-dynamodb"
-  role = aws_iam_role.function_assume_role.id
+resource "aws_iam_role_policy" "api_permissions" {
+  name = "${aws_s3_bucket.front_end.id}-api-gateway-dynamodb"
+  role = aws_iam_role.api_permissions.id
 
-  policy = data.aws_iam_policy_document.function_permissions.json
+  policy = data.aws_iam_policy_document.api_permissions.json
 }

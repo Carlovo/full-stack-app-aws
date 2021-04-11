@@ -16,9 +16,18 @@ This app can be deployed using Terraform v0.14.8 with provider.aws v3.33.0 and p
 
 If you don't know Terraform or how to use it, please see [their documentation](https://learn.hashicorp.com/terraform).
 
-### Vanilla (CloudFront domain name)
+### Vanilla (no logging, CloudFront domain name)
 
 Run the regular `terraform init` and `terraform apply` command and everything should deploy fine.
+
+### Enabling logging
+
+Run `terraform apply -var='log_api=true'` and Terraform will enable logging on the API request and responses in CloudWatch.
+To actually do this, API Gateway needs a role.
+There can only be one such role linked to API Gateway per AWS region, so you can skip the next bit if you already have one configured.
+Otherwise, add `-var='api_gateway_log_role=true'` and Terraform will configure such a role.
+There is no API to remove this coupling in API Gateway, so this stays after a `terraform destroy`, but this should be harmless.
+The logs produced are also configured to stay after destructing by Terraform.
 
 ### Custom domain name
 
@@ -42,6 +51,17 @@ Run the regular `terraform init` as normal.
 Run `terraform apply -var='apps=["to-do","shopping-list"]'` and Terraform will deploy an extra DynamoDB table to provide you with multiple databases with which the rest of the app can work.
 The names in the list are used to generate names of AWS resources, so names must be unique in the list and cannot contain too eccentric characters.
 
+### Terraform output
+
+Terraform will output the website and API endpoint of your app if deployment was successful.
+(When using a custom domain name, the CloudFront website endpoint is still available and will be outputted as normal.)
+
+The (insecure) S3 endpoint of your website bucket will also be outputted, but this is only useful/available when you set the insecure variable to `true` for faster testing.
+
+## Developing further
+
+You may want to consider the following things if you want to further develop this app.
+
 ### Faster testing during development
 
 If you want to test new code, you would have to wait until CloudFront updates.
@@ -49,12 +69,19 @@ To temporarily overcome this problem, you can set the Terraform variable `-var='
 This strips all read protection from S3.
 Then you can access your website content via the S3 endpoint immediately (or eventually consistent...) after updating.
 
-### Terraform output
+### Redeploying APIs
 
-Terraform will output the website and API endpoint of your app if deployment was successful.
-(When using a custom domain name, the CloudFront website endpoint is still available and will be outputted as normal.)
+Terraform has difficulties detecting when changes in one API Gateway resource should trigger changes in another.
+Therefore, this part of the code has a lot of `depends_on` statements.
+Also, the `aws_api_gateway_deployment` resource has some many difficulties that only a snippet like below solved it:
 
-The (insecure) S3 endpoint of your website bucket will also be outputted, but this is only useful/available when you set the insecure variable to `true` for faster testing.
+``` terraform
+triggers = {
+    redeployment = filesha1("./resources_stateless_back_end.tf")
+  }
+```
+
+The Terraform documentation explains these shortcomings as well, so you can read more about it for example [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment).
 
 ## Contributing
 

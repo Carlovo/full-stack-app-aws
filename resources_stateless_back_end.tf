@@ -1,94 +1,97 @@
-# Lambda function
-
-data "archive_file" "crud_function_package" {
-  type        = "zip"
-  source_file = "./database_connector.py"
-  output_path = "./database_connector.zip"
-}
-
-resource "aws_lambda_function" "crud" {
-  function_name = aws_s3_bucket.front_end.id
-
-  filename         = data.archive_file.crud_function_package.output_path
-  source_code_hash = data.archive_file.crud_function_package.output_base64sha256
-
-  handler = "database_connector.lambda_handler"
-  runtime = "python3.8"
-
-  role = aws_iam_role.function_assume_role.arn
-
-  environment {
-    variables = {
-      table_name_prefix = local.unique_name_prefix
-    }
-  }
-}
-
-# API Gateway
-
 resource "aws_api_gateway_rest_api" "crud" {
   name = aws_s3_bucket.front_end.id
 }
 
-resource "aws_api_gateway_method" "proxy_root" {
-  rest_api_id   = aws_api_gateway_rest_api.crud.id
-  resource_id   = aws_api_gateway_rest_api.crud.root_resource_id
-  http_method   = "ANY"
-  authorization = "NONE"
+locals {
+  api_path_table = "table_name"
 }
 
-resource "aws_api_gateway_integration" "lambda_root" {
-  rest_api_id = aws_api_gateway_rest_api.crud.id
-  resource_id = aws_api_gateway_method.proxy_root.resource_id
-  http_method = aws_api_gateway_method.proxy_root.http_method
-
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.crud.invoke_arn
-}
-
-resource "aws_api_gateway_resource" "proxy" {
+resource "aws_api_gateway_resource" "tables" {
   rest_api_id = aws_api_gateway_rest_api.crud.id
   parent_id   = aws_api_gateway_rest_api.crud.root_resource_id
-  path_part   = "{proxy+}"
+  path_part   = tolist(var.tables)[0]
 }
 
-resource "aws_api_gateway_method" "proxy" {
+resource "aws_api_gateway_method" "scan_table" {
   rest_api_id   = aws_api_gateway_rest_api.crud.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "ANY"
+  resource_id   = aws_api_gateway_resource.tables.id
+  http_method   = "GET"
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_integration" "lambda" {
+resource "aws_api_gateway_method_response" "scan_table" {
   rest_api_id = aws_api_gateway_rest_api.crud.id
-  resource_id = aws_api_gateway_method.proxy.resource_id
-  http_method = aws_api_gateway_method.proxy.http_method
+  resource_id = aws_api_gateway_resource.tables.id
+  http_method = aws_api_gateway_method.scan_table.http_method
+  status_code = "200"
+}
 
+resource "aws_api_gateway_integration" "scan_table" {
+  rest_api_id             = aws_api_gateway_rest_api.crud.id
+  resource_id             = aws_api_gateway_resource.tables.id
+  http_method             = aws_api_gateway_method.scan_table.http_method
+  credentials             = aws_iam_role.api_permissions.arn
   integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.crud.invoke_arn
+  type                    = "AWS"
+  uri                     = "arn:aws:apigateway:${data.aws_region.current.name}:dynamodb:action/Scan"
+  passthrough_behavior    = "WHEN_NO_TEMPLATES"
+
+  request_templates = {
+    "application/json" = jsonencode(
+      {
+        TableName = "${local.unique_name_prefix}${aws_api_gateway_resource.tables.path_part}"
+      }
+    )
+  }
+}
+
+resource "aws_api_gateway_integration_response" "scan_table" {
+  rest_api_id = aws_api_gateway_rest_api.crud.id
+  resource_id = aws_api_gateway_resource.tables.id
+  http_method = aws_api_gateway_method.scan_table.http_method
+  status_code = aws_api_gateway_method_response.scan_table.status_code
+
+  # Recommended by Terraform
+  depends_on = [aws_api_gateway_integration.scan_table]
 }
 
 resource "aws_api_gateway_deployment" "crud" {
+  rest_api_id = aws_api_gateway_rest_api.crud.id
+
   depends_on = [
-    aws_api_gateway_integration.lambda,
-    aws_api_gateway_integration.lambda_root,
+    aws_api_gateway_resource.tables,
+    aws_api_gateway_method.scan_table,
+    aws_api_gateway_method_response.scan_table,
+    aws_api_gateway_integration.scan_table,
+    aws_api_gateway_integration_response.scan_table
   ]
 
-  rest_api_id = aws_api_gateway_rest_api.crud.id
-  stage_name  = "crud"
+  # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment
+  # Terraform has diffeculties seeing when redeployment should happen, therefore this dirty hack
+  triggers = {
+    redeployment = filesha1("./resources_stateless_back_end.tf")
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-resource "aws_lambda_permission" "api_invoke_lambda" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.crud.function_name
-  principal     = "apigateway.amazonaws.com"
+resource "aws_api_gateway_stage" "crud" {
+  deployment_id = aws_api_gateway_deployment.crud.id
+  rest_api_id   = aws_api_gateway_rest_api.crud.id
+  stage_name    = "crud"
+}
 
-  # The "/*/*" portion grants access from any method on any resource
-  # within the API Gateway REST API.
-  source_arn = "${aws_api_gateway_rest_api.crud.execution_arn}/*/*"
+resource "aws_api_gateway_method_settings" "crud" {
+  rest_api_id = aws_api_gateway_rest_api.crud.id
+  stage_name  = aws_api_gateway_stage.crud.stage_name
+  method_path = "*/*"
+
+  settings {
+    data_trace_enabled = var.log_api ? true : null
+    logging_level      = var.log_api ? "INFO" : "OFF"
+  }
 }
 
 resource "aws_api_gateway_domain_name" "alias" {
@@ -104,5 +107,5 @@ resource "aws_api_gateway_base_path_mapping" "alias" {
 
   domain_name = aws_api_gateway_domain_name.alias[0].domain_name
   api_id      = aws_api_gateway_rest_api.crud.id
-  stage_name  = aws_api_gateway_deployment.crud.stage_name
+  stage_name  = aws_api_gateway_stage.crud.stage_name
 }

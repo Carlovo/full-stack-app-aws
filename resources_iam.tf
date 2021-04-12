@@ -28,17 +28,6 @@ resource "aws_s3_bucket_policy" "cloudfront_s3_policy" {
   policy = data.aws_iam_policy_document.cloudfront_s3_policy.json
 }
 
-data "aws_iam_policy_document" "function_assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-  }
-}
-
 data "aws_iam_policy_document" "api_gateway_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]

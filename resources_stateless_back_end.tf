@@ -3,26 +3,111 @@ resource "aws_api_gateway_rest_api" "crud" {
 }
 
 module "api_gateway_resource_to_dynamodb_table" {
-  source = "./modules/api_gateway_resource_to_dynamodb_table"
+  source = "./modules/api_gateway_resource_to_dynamodb"
 
   rest_api_id        = aws_api_gateway_rest_api.crud.id
   parent_id          = aws_api_gateway_rest_api.crud.root_resource_id
+  path_part          = tolist(var.tables)[0]
   execution_role_arn = aws_iam_role.api_permissions.arn
-  unique_name_prefix = local.unique_name_prefix
-  table              = tolist(var.tables)[0]
+
+  integrations = {
+    GET = {
+      dynamodb_action         = "Scan"
+      transformation_template = jsonencode({ TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name })
+    },
+    POST = {
+      dynamodb_action = "PutItem"
+      transformation_template = jsonencode({
+        TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name
+        Item = {
+          id = {
+            S = "$context.requestId"
+          }
+          name = {
+            S = "$input.path('$.name')"
+          }
+          priority = {
+            N = "$input.path('$.priority')"
+          }
+          check = {
+            BOOL = "$input.path('$.check')"
+          }
+          modified = {
+            S = "$input.path('$.modified')"
+          }
+          timestamp = {
+            S = "$input.path('$.timestamp')"
+          }
+        }
+      })
+    }
+  }
+}
+
+module "api_gateway_resource_to_dynamodb_item" {
+  source = "./modules/api_gateway_resource_to_dynamodb"
+
+  rest_api_id        = aws_api_gateway_rest_api.crud.id
+  parent_id          = module.api_gateway_resource_to_dynamodb_table.api_gateway_method_resource_id
+  path_part          = "{item}"
+  execution_role_arn = aws_iam_role.api_permissions.arn
+
+  integrations = {
+    DELETE = {
+      dynamodb_action = "DeleteItem"
+      transformation_template = jsonencode({
+        TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name
+        Key = {
+          id = { S = "$input.params('item')" }
+        }
+      })
+    },
+    PUT = {
+      dynamodb_action = "UpdateItem"
+      transformation_template = jsonencode({
+        TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name
+        Key = {
+          id = { S = "$input.params('item')" }
+        }
+        UpdateExpression = "SET #n = :new_name, #p = :new_priority, #c = :new_check, #m = :new_modified",
+        ExpressionAttributeNames = {
+          "#n" = "name"
+          "#p" = "priority"
+          "#c" = "check"
+          "#m" = "modified"
+        }
+        ExpressionAttributeValues = {
+          ":new_name" = {
+            S = "$input.path('$.name')"
+          }
+          ":new_priority" = {
+            N = "$input.path('$.priority')"
+          }
+          ":new_check" = {
+            BOOL = "$input.path('$.check')"
+          }
+          ":new_modified" = {
+            S = "$input.path('$.modified')"
+          }
+        }
+      })
+    }
+  }
 }
 
 resource "aws_api_gateway_deployment" "crud" {
   rest_api_id = aws_api_gateway_rest_api.crud.id
 
-  depends_on = [module.api_gateway_resource_to_dynamodb_table]
+  depends_on = [
+    module.api_gateway_resource_to_dynamodb_table,
+    module.api_gateway_resource_to_dynamodb_item
+  ]
 
   # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment
   # Terraform has diffeculties seeing when redeployment should happen, therefore this dirty hack
   triggers = {
     this_file               = filesha1("./resources_stateless_back_end.tf")
-    top_module_file         = filesha1("./modules/api_gateway_resource_to_dynamodb_table/main.tf")
-    item_module_file        = filesha1("./modules/api_gateway_resource_to_dynamodb_item/main.tf")
+    top_module_file         = filesha1("./modules/api_gateway_resource_to_dynamodb/main.tf")
     integration_module_file = filesha1("./modules/api_gateway_method_dynamodb_integration/main.tf")
   }
 

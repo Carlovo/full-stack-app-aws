@@ -108,7 +108,7 @@ resource "aws_api_gateway_deployment" "crud" {
   triggers = {
     this_file               = filesha1("./resources_stateless_back_end.tf")
     top_module_file         = filesha1("./modules/api_gateway_resource_to_dynamodb/main.tf")
-    integration_module_file = filesha1("./modules/api_gateway_method_dynamodb_integration/main.tf")
+    integration_module_file = filesha1("./modules/api_gateway_method_integration/main.tf")
   }
 
   lifecycle {

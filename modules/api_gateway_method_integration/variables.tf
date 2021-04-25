@@ -1,5 +1,3 @@
-data "aws_region" "current" {}
-
 variable "rest_api_id" {
   type        = string
   description = "ID of the API to which to add this integration."
@@ -20,12 +18,18 @@ variable "execution_role_arn" {
   description = "The role with which to execute the API."
 }
 
-variable "dynamodb_action" {
+variable "integration_uri" {
   type        = string
-  description = "The action to perform on the DynamoDB resource."
+  description = "The API Gateway uri to perform the action against."
 }
 
 variable "transformation_template" {
   type        = string
   description = "The template to translate the json from the request to DynamoDB terms."
+}
+
+variable "extra_response_parameters" {
+  type        = map(string)
+  default     = {}
+  description = "The response parameters that should be present next to 'Access-Control-Allow-Origin'."
 }

@@ -1,3 +1,5 @@
+data "aws_region" "current" {}
+
 variable "rest_api_id" {
   type        = string
   description = "ID of the API to which to add this integration."

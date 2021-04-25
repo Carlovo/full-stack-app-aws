@@ -30,7 +30,7 @@ resource "aws_s3_bucket_object" "script" {
   content = templatefile(
     "./index.js",
     {
-      api_url = var.alternate_domain_name == "" ? aws_api_gateway_deployment.crud.invoke_url : "https://${aws_api_gateway_base_path_mapping.alias[0].domain_name}/${aws_api_gateway_base_path_mapping.alias[0].stage_name}"
+      api_url = var.alternate_domain_name == "" ? aws_api_gateway_deployment.crud.invoke_url : "https://${aws_api_gateway_base_path_mapping.alias[0].domain_name}/"
     }
   )
 }

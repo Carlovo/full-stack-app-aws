@@ -34,5 +34,6 @@ module "enable_cors" {
   extra_response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     "method.response.header.Access-Control-Allow-Methods" = local.allow_methods
+    "method.response.header.Access-Control-Max-Age"       = "'900'"
   }
 }

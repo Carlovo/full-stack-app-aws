@@ -333,9 +333,7 @@ var minimalApp = new function () {
 
             if (cbOptionsOnline.checked) {
 
-                itemDict["operation"] = "Create";
-
-                minimalApp.xhttpBackEnd(itemDict);
+                minimalApp.xhttpModifyBackEnd("POST", "", itemDict);
             } else {
 
                 // this is not foolproof, but it's not used downstream in the current setup
@@ -370,9 +368,7 @@ var minimalApp = new function () {
 
             if (cbOptionsOnline.checked) {
 
-                itemDict["operation"] = "Save";
-
-                minimalApp.xhttpBackEnd(itemDict);
+                minimalApp.xhttpModifyBackEnd("PUT", itemDict["id"], itemDict);
             } else {
 
                 console.log(itemDict);
@@ -397,7 +393,7 @@ var minimalApp = new function () {
 
         if (cbOptionsOnline.checked) {
 
-            minimalApp.xhttpBackEnd(itemDict);
+            minimalApp.xhttpModifyBackEnd("PUT", itemDict["id"], itemDict);
         } else {
 
             tableEntries[entryNumber]["check"] = inputElement.checked;
@@ -408,15 +404,15 @@ var minimalApp = new function () {
 
     this.deleteItem = function (entryNumber) {
 
-        var itemDict = tableEntries[entryNumber];
-        itemDict["operation"] = "Delete";
-
         var cbOptionsOnline = document.getElementById("Options-Online");
 
         if (cbOptionsOnline.checked) {
 
-            minimalApp.xhttpBackEnd(itemDict);
+            minimalApp.xhttpModifyBackEnd("DELETE", tableEntries[entryNumber]["id"], {});
         } else {
+
+            var itemDict = tableEntries[entryNumber];
+            itemDict["operation"] = "Delete";
 
             tableEntries.splice(entryNumber, 1);
 
@@ -460,14 +456,27 @@ var minimalApp = new function () {
         };
     };
 
-    this.xhttpBackEnd = function (payloadDict) {
+    this.alertInvalidRequest = function () {
 
-        payloadDict["table"] = queryTable;
+        alert("invalid request");
 
-        var payloadText = JSON.stringify(payloadDict);
+        var viewDetails = document.getElementById("viewDetails");
+        viewDetails.setAttribute("style", "display:none");
+
+        var sortDetails = document.getElementById("sortDetails");
+        sortDetails.setAttribute("style", "display:none");
+
+        var bulkDetails = document.getElementById("bulkDetails");
+        bulkDetails.setAttribute("style", "display:none");
+
+        mainTable.innerHTML = mainTableDefaultHTML;
+
+        minimalApp.scaleContent();
+    };
+
+    this.xhttpGetTableEntries = function () {
+
         var xhttp = new XMLHttpRequest();
-
-        console.log(payloadText);
 
         xhttp.onreadystatechange = function () {
 
@@ -493,20 +502,7 @@ var minimalApp = new function () {
                     minimalApp.buildMainTable();
                 } else {
 
-                    alert("invalid request");
-
-                    var viewDetails = document.getElementById("viewDetails");
-                    viewDetails.setAttribute("style", "display:none");
-
-                    var sortDetails = document.getElementById("sortDetails");
-                    sortDetails.setAttribute("style", "display:none");
-
-                    var bulkDetails = document.getElementById("bulkDetails");
-                    bulkDetails.setAttribute("style", "display:none");
-
-                    mainTable.innerHTML = mainTableDefaultHTML;
-
-                    minimalApp.scaleContent();
+                    minimalApp.alertInvalidRequest();
                 };
             };
         };
@@ -514,6 +510,34 @@ var minimalApp = new function () {
         xhttp.open("GET", apiUrl + queryTable);
 
         xhttp.send();
+
+        minimalApp.toggleDisabledInput(true);
+    };
+
+    this.xhttpModifyBackEnd = function (method, urlAppendix, bodyDict) {
+
+        var bodyText = JSON.stringify(bodyDict);
+        var xhttp = new XMLHttpRequest();
+
+        console.log(bodyText);
+
+        xhttp.onreadystatechange = function () {
+
+            if (this.readyState == 4) {
+
+                if (this.status == 200) {
+
+                    minimalApp.xhttpGetTableEntries();
+                } else {
+
+                    minimalApp.alertInvalidRequest();
+                };
+            };
+        };
+
+        xhttp.open(method, apiUrl + queryTable + "/" + urlAppendix);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(bodyText);
 
         minimalApp.toggleDisabledInput(true);
     };
@@ -663,9 +687,7 @@ var minimalApp = new function () {
 
         if (typeof queryTable === "string" && queryTable.length > 0) {
 
-            var itemDict = { "operation": "Get" };
-
-            minimalApp.xhttpBackEnd(itemDict);
+            minimalApp.xhttpGetTableEntries();
 
             mainTable.innerHTML = "";
             var tr = mainTable.insertRow(-1);

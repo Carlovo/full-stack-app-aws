@@ -14,7 +14,8 @@ module "api_gateway_method_dynamodb_integration" {
   http_method             = each.key
   execution_role_arn      = var.execution_role_arn
   integration_uri         = "arn:aws:apigateway:${data.aws_region.current.name}:dynamodb:action/${each.value.dynamodb_action}"
-  transformation_template = each.value.transformation_template
+  request_transformation  = each.value.request_transformation
+  response_transformation = lookup(each.value, "response_transformation", null)
 }
 
 locals {
@@ -30,7 +31,7 @@ module "enable_cors" {
   http_method             = "OPTIONS"
   execution_role_arn      = null
   integration_uri         = null
-  transformation_template = jsonencode({ statusCode = 200 })
+  request_transformation  = jsonencode({ statusCode = 200 })
   extra_response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     "method.response.header.Access-Control-Allow-Methods" = local.allow_methods

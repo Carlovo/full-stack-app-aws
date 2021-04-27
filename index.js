@@ -484,20 +484,7 @@ var minimalApp = new function () {
 
                 if (this.status == 200) {
 
-                    var backendResponse = JSON.parse(this.responseText)["Items"];
-
-                    tableEntries = backendResponse.map(item => {
-
-                        let entry = {};
-                        entry["priority"] = item["priority"]["N"];
-                        entry["id"] = item["id"]["S"];
-                        entry["name"] = item["name"]["S"];
-                        entry["modified"] = item["modified"]["S"];
-                        entry["check"] = item["check"]["BOOL"];
-                        entry["timestamp"] = item["timestamp"]["S"];
-
-                        return entry;
-                    });
+                    tableEntries = JSON.parse(this.responseText);
 
                     minimalApp.buildMainTable();
                 } else {

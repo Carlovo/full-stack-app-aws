@@ -29,7 +29,7 @@ resource "aws_api_gateway_integration" "this" {
   type                    = var.integration_uri == null ? "MOCK" : "AWS"
   uri                     = var.integration_uri
   passthrough_behavior    = "NEVER"
-  request_templates       = { "application/json" = var.transformation_template }
+  request_templates       = { "application/json" = var.request_transformation }
 }
 
 resource "aws_api_gateway_integration_response" "this" {
@@ -38,6 +38,7 @@ resource "aws_api_gateway_integration_response" "this" {
   http_method         = aws_api_gateway_method.this.http_method
   status_code         = aws_api_gateway_method_response.this.status_code
   response_parameters = local.response_parameters
+  response_templates  = var.response_transformation == null ? null : { "application/json" = var.response_transformation }
 
   # Recommended by Terraform
   depends_on = [aws_api_gateway_integration.this]

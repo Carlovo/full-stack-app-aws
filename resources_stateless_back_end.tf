@@ -13,11 +13,25 @@ module "api_gateway_resource_to_dynamodb_table" {
   integrations = {
     GET = {
       dynamodb_action         = "Scan"
-      transformation_template = jsonencode({ TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name })
+      request_transformation  = jsonencode({ TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name })
+      response_transformation = <<-EOT
+[
+#foreach($item in $input.path('$.Items'))
+  {
+    "id": "$item.id.S",
+    "name": "$item.name.S",
+    "modified": "$item.modified.S",
+    "timestamp": "$item.timestamp.S",
+    "priority": $item.priority.N,
+    "check": $item.check.BOOL
+  }#if($foreach.hasNext),#end
+#end
+]
+EOT
     },
     POST = {
       dynamodb_action = "PutItem"
-      transformation_template = jsonencode({
+      request_transformation = jsonencode({
         TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name
         Item = {
           id = {
@@ -55,7 +69,7 @@ module "api_gateway_resource_to_dynamodb_item" {
   integrations = {
     DELETE = {
       dynamodb_action = "DeleteItem"
-      transformation_template = jsonencode({
+      request_transformation = jsonencode({
         TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name
         Key = {
           id = { S = "$input.params('item')" }
@@ -64,7 +78,7 @@ module "api_gateway_resource_to_dynamodb_item" {
     },
     PUT = {
       dynamodb_action = "UpdateItem"
-      transformation_template = jsonencode({
+      request_transformation = jsonencode({
         TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name
         Key = {
           id = { S = "$input.params('item')" }

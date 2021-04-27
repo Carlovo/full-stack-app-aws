@@ -23,9 +23,15 @@ variable "integration_uri" {
   description = "The API Gateway uri to perform the action against."
 }
 
-variable "transformation_template" {
+variable "request_transformation" {
   type        = string
   description = "The template to translate the json from the request to DynamoDB terms."
+}
+
+variable "response_transformation" {
+  type        = string
+  default     = null
+  description = "The template to translate the json from the response from DynamoDB terms."
 }
 
 variable "extra_response_parameters" {

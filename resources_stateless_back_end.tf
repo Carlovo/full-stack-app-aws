@@ -14,20 +14,7 @@ module "api_gateway_resource_to_dynamodb_table" {
     GET = {
       dynamodb_action         = "Scan"
       request_transformation  = jsonencode({ TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name })
-      response_transformation = <<-EOT
-[
-#foreach($item in $input.path('$.Items'))
-  {
-    "id": "$item.id.S",
-    "name": "$item.name.S",
-    "modified": "$item.modified.S",
-    "timestamp": "$item.timestamp.S",
-    "priority": $item.priority.N,
-    "check": $item.check.BOOL
-  }#if($foreach.hasNext),#end
-#end
-]
-EOT
+      response_transformation = file("./dynamodb_scan.vtl")
     },
     POST = {
       dynamodb_action = "PutItem"

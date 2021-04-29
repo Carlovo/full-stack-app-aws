@@ -446,9 +446,7 @@ var minimalApp = new function () {
                 itemDict["timestamp"] = minimalApp.createCustomTimestamp();
                 itemDict["modified"] = itemDict["timestamp"];
 
-                itemDict["operation"] = "BulkMultiline";
-
-                minimalApp.xhttpBackEnd(itemDict);
+                minimalApp.xhttpModifyBackEnd("POST", "", itemDict);
             };
         } else {
 

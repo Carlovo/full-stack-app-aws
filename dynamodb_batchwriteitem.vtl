@@ -1,0 +1,62 @@
+{
+  "RequestItems": {
+    ## Templated by Terraform
+    "${dynamodb_table_name}": [
+    #set( $nameList = $input.path('$.name').split('\n') )
+    #if( $nameList.size() == 1 )
+      {
+        "PutRequest": {
+          "Item": {
+            "check": {
+              "BOOL": "$input.path('$.check')"
+            },
+            "id": {
+              "S": "$context.requestId"
+            },
+            "modified": {
+              "S": "$input.path('$.modified')"
+            },
+            "name": {
+              "S": "$nameList[0]"
+            },
+            "priority": {
+              "N": "$input.path('$.priority')"
+            },
+            "timestamp": {
+              "S": "$input.path('$.timestamp')"
+            }
+          }
+        }
+      }
+    #else
+    #foreach( $name in $nameList )
+      {
+        "PutRequest": {
+          "Item": {
+            "check": {
+              "BOOL": "$input.path('$.check')"
+            },
+            "id": {
+              ## Escape Terraform templating
+              "S": "$${context.requestId}-$foreach.count"
+            },
+            "modified": {
+              "S": "$input.path('$.modified')"
+            },
+            "name": {
+              "S": "$name"
+            },
+            "priority": {
+              "N": "$input.path('$.priority')"
+            },
+            "timestamp": {
+              "S": "$input.path('$.timestamp')"
+            }
+          }
+        }
+      }
+    #end
+    #end
+    ]
+  }
+}

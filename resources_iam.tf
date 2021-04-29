@@ -86,7 +86,7 @@ data "aws_iam_policy_document" "api_permissions" {
   statement {
     actions = [
       "dynamodb:Scan",
-      "dynamodb:PutItem",
+      "dynamodb:BatchWriteItem",
       "dynamodb:DeleteItem",
       "dynamodb:UpdateItem"
     ]

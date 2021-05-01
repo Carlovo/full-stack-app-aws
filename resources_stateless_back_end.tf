@@ -3,17 +3,19 @@ resource "aws_api_gateway_rest_api" "crud" {
 }
 
 module "api_gateway_resource_to_dynamodb_table" {
+  for_each = var.tables
+
   source = "./modules/api_gateway_resource_to_dynamodb"
 
   rest_api_id        = aws_api_gateway_rest_api.crud.id
   parent_id          = aws_api_gateway_rest_api.crud.root_resource_id
-  path_part          = tolist(var.tables)[0]
+  path_part          = each.key
   execution_role_arn = aws_iam_role.api_permissions.arn
 
   integrations = {
     GET = {
       dynamodb_action         = "Scan"
-      request_transformation  = jsonencode({ TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name })
+      request_transformation  = jsonencode({ TableName = aws_dynamodb_table.main[each.key].name })
       response_transformation = file("./dynamodb_scan.vtl")
     },
     POST = {
@@ -21,7 +23,7 @@ module "api_gateway_resource_to_dynamodb_table" {
       request_transformation = templatefile(
         "./dynamodb_batchwriteitem.vtl",
         {
-          dynamodb_table_name = aws_dynamodb_table.main[tolist(var.tables)[0]].name
+          dynamodb_table_name = aws_dynamodb_table.main[each.key].name
         }
       )
     }
@@ -29,10 +31,12 @@ module "api_gateway_resource_to_dynamodb_table" {
 }
 
 module "api_gateway_resource_to_dynamodb_item" {
+  for_each = var.tables
+
   source = "./modules/api_gateway_resource_to_dynamodb"
 
   rest_api_id        = aws_api_gateway_rest_api.crud.id
-  parent_id          = module.api_gateway_resource_to_dynamodb_table.api_gateway_method_resource_id
+  parent_id          = module.api_gateway_resource_to_dynamodb_table[each.key].api_gateway_method_resource_id
   path_part          = "{item}"
   execution_role_arn = aws_iam_role.api_permissions.arn
 
@@ -40,7 +44,7 @@ module "api_gateway_resource_to_dynamodb_item" {
     DELETE = {
       dynamodb_action = "DeleteItem"
       request_transformation = jsonencode({
-        TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name
+        TableName = aws_dynamodb_table.main[each.key].name
         Key = {
           id = { S = "$input.params('item')" }
         }
@@ -49,7 +53,7 @@ module "api_gateway_resource_to_dynamodb_item" {
     PUT = {
       dynamodb_action = "UpdateItem"
       request_transformation = jsonencode({
-        TableName = aws_dynamodb_table.main[tolist(var.tables)[0]].name
+        TableName = aws_dynamodb_table.main[each.key].name
         Key = {
           id = { S = "$input.params('item')" }
         }

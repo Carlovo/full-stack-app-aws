@@ -27,7 +27,7 @@ To actually do this, API Gateway needs a role.
 There can only be one such role linked to API Gateway per AWS region, so you can skip the next bit if you already have one configured.
 Otherwise, add `-var='api_gateway_log_role=true'` and Terraform will configure such a role.
 There is no API to remove this coupling in API Gateway, so this stays after a `terraform destroy`, but this should be harmless.
-The logs produced are also configured to stay after destructing by Terraform.
+The logs produced are also configured to stay after destruction by Terraform.
 
 ### Custom domain name
 
@@ -48,7 +48,7 @@ Need to keep a shopping list next to your to-do list?
 Well that and any other more tables can be deployed at the same time with this code.
 
 Run the regular `terraform init` as normal.
-Run `terraform apply -var='apps=["to-do","shopping-list"]'` and Terraform will deploy an extra DynamoDB table to provide you with multiple databases with which the rest of the app can work.
+Run `terraform apply -var='tables=["to-do","shopping-list"]'` and Terraform will deploy an extra DynamoDB table to provide you with multiple databases with which the rest of the app can work.
 The names in the list are used to generate names of AWS resources, so names must be unique in the list and cannot contain too eccentric characters.
 
 ### Terraform output
@@ -73,7 +73,7 @@ Then you can access your website content via the S3 endpoint immediately (or eve
 
 Terraform has difficulties detecting when changes in one API Gateway resource should trigger changes in another.
 Therefore, this part of the code has a lot of `depends_on` statements.
-Also, the `aws_api_gateway_deployment` resource has some many difficulties that only a snippet like below solved it:
+Also, the `aws_api_gateway_deployment` resource has so many difficulties that only a snippet like below solves it:
 
 ``` terraform
 triggers = {

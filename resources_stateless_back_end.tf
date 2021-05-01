@@ -16,12 +16,12 @@ module "api_gateway_resource_to_dynamodb_table" {
     GET = {
       dynamodb_action         = "Scan"
       request_transformation  = jsonencode({ TableName = aws_dynamodb_table.main[each.key].name })
-      response_transformation = file("./dynamodb_scan.vtl")
+      response_transformation = file("./terraform_templates/back_end/dynamodb_scan.vtl")
     },
     POST = {
       dynamodb_action = "BatchWriteItem"
       request_transformation = templatefile(
-        "./dynamodb_batchwriteitem.vtl",
+        "./terraform_templates/back_end/dynamodb_batchwriteitem.vtl",
         {
           dynamodb_table_name = aws_dynamodb_table.main[each.key].name
         }
@@ -95,8 +95,8 @@ resource "aws_api_gateway_deployment" "crud" {
   # Terraform has diffeculties seeing when redeployment should happen, therefore this dirty hack
   triggers = {
     this_file               = filesha1("./resources_stateless_back_end.tf")
-    vtl_scan                = filesha1("./dynamodb_scan.vtl")
-    vtl_batchwriteitem      = filesha1("./dynamodb_batchwriteitem.vtl")
+    vtl_scan                = filesha1("./terraform_templates/back_end/dynamodb_scan.vtl")
+    vtl_batchwriteitem      = filesha1("./terraform_templates/back_end/dynamodb_batchwriteitem.vtl")
     top_module_file         = filesha1("./modules/api_gateway_resource_to_dynamodb/main.tf")
     integration_module_file = filesha1("./modules/api_gateway_method_integration/main.tf")
   }

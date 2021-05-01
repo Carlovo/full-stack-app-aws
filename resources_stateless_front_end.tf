@@ -14,7 +14,7 @@ resource "aws_s3_bucket_object" "index" {
   acl          = var.insecure ? "public-read" : "private"
 
   content = templatefile(
-    "./index.html",
+    "./terraform_templates/front_end/index.html",
     {
       table_query_links = join("</td></tr><tr><td>", local.table_query_links)
     }
@@ -28,7 +28,7 @@ resource "aws_s3_bucket_object" "script" {
   acl          = var.insecure ? "public-read" : "private"
 
   content = templatefile(
-    "./index.js",
+    "./terraform_templates/front_end/index.js",
     {
       api_url = var.alternate_domain_name == "" ? aws_api_gateway_deployment.crud.invoke_url : "https://${aws_api_gateway_base_path_mapping.alias[0].domain_name}/"
     }
@@ -41,5 +41,5 @@ resource "aws_s3_bucket_object" "page_404" {
   content_type = "text/html"
   acl          = var.insecure ? "public-read" : "private"
 
-  content = file("./404.html")
+  content = file("./terraform_templates/front_end/404.html")
 }

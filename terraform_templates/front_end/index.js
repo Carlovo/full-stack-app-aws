@@ -45,10 +45,13 @@ var minimalApp = new function () {
 
         if (cbOptionsTimestamp.checked) {
 
+            var jsDate = new Date(tableEntry["timestamp"]);
+
             var timestampCell = tr.insertCell(-1);
             timestampCell.style.fontSize = "x-small";
             timestampCell.style.fontStyle = "italic";
-            timestampCell.innerHTML = tableEntry["timestamp"];
+            // short, most significant numbers come first and most visually different separators between date and time
+            timestampCell.innerHTML = jsDate.toLocaleString("sv-SE");
             timestampCell.setAttribute("id", "Timestamp-" + entryNumber);
         };
 
@@ -56,10 +59,13 @@ var minimalApp = new function () {
 
         if (cbOptionsModified.checked) {
 
+            var jsDate = new Date(tableEntry["modified"]);
+
             var modifiedCell = tr.insertCell(-1);
             modifiedCell.style.fontSize = "x-small";
             modifiedCell.style.fontStyle = "italic";
-            modifiedCell.innerHTML = tableEntry["modified"];
+            // short, most significant numbers come first and most visually different separators between date and time
+            modifiedCell.innerHTML = jsDate.toLocaleString("sv-SE");
             modifiedCell.setAttribute("id", "Modified-" + entryNumber);
         };
 
@@ -220,10 +226,10 @@ var minimalApp = new function () {
 
         var sortFunctions = [
             (a, b) => sortDirections[0] * (a.priority - b.priority),
-            (a, b) => sortDirections[1] * (a.timestamp.localeCompare(b.timestamp)),
+            (a, b) => sortDirections[1] * (a.timestamp - b.timestamp),
             (a, b) => sortDirections[2] * (a.check.toString().localeCompare(b.check.toString())),
             (a, b) => sortDirections[3] * (a.name.localeCompare(b.name)),
-            (a, b) => sortDirections[4] * (a.modified.localeCompare(b.modified))
+            (a, b) => sortDirections[4] * (a.modified - b.modified)
         ];
 
         var sortApply = [];
@@ -274,14 +280,6 @@ var minimalApp = new function () {
         minimalApp.scaleContent();
     };
 
-    this.createCustomTimestamp = function () {
-
-        var timestamp = new Date();
-        var timestampString = timestamp.toISOString();
-        var customTimestamp = timestampString.substring(0, 19);
-        return customTimestamp.replace("T", " ");
-    };
-
     this.validateAlphanumericInput = function (entryNumber, currentPriority) {
 
         var valid = true;
@@ -326,8 +324,6 @@ var minimalApp = new function () {
         if (valid) {
 
             itemDict["check"] = false;
-            itemDict["timestamp"] = minimalApp.createCustomTimestamp();
-            itemDict["modified"] = itemDict["timestamp"];
 
             var cbOptionsOnline = document.getElementById("Options-Online");
 
@@ -362,8 +358,6 @@ var minimalApp = new function () {
 
         if (valid) {
 
-            itemDict["modified"] = minimalApp.createCustomTimestamp();
-
             var cbOptionsOnline = document.getElementById("Options-Online");
 
             if (cbOptionsOnline.checked) {
@@ -387,7 +381,6 @@ var minimalApp = new function () {
 
         itemDict["operation"] = "Save";
         itemDict["check"] = inputElement.checked;
-        itemDict["modified"] = minimalApp.createCustomTimestamp();
 
         var cbOptionsOnline = document.getElementById("Options-Online");
 
@@ -443,8 +436,6 @@ var minimalApp = new function () {
                 itemDict["name"] = taName.value;
                 itemDict["priority"] = Number(nbPriority.value);
                 itemDict["check"] = cbCheck.checked;
-                itemDict["timestamp"] = minimalApp.createCustomTimestamp();
-                itemDict["modified"] = itemDict["timestamp"];
 
                 minimalApp.xhttpModifyBackEnd("POST", "", itemDict);
             };

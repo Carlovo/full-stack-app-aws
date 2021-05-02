@@ -14,7 +14,7 @@
               "S": "$context.requestId"
             },
             "modified": {
-              "S": "$input.path('$.modified')"
+              "N": "$context.requestTimeEpoch"
             },
             "name": {
               "S": "$nameList[0]"
@@ -23,7 +23,7 @@
               "N": "$input.path('$.priority')"
             },
             "timestamp": {
-              "S": "$input.path('$.timestamp')"
+              "N": "$context.requestTimeEpoch"
             }
           }
         }
@@ -41,7 +41,7 @@
               "S": "$${context.requestId}-$foreach.count"
             },
             "modified": {
-              "S": "$input.path('$.modified')"
+              "N": "$context.requestTimeEpoch"
             },
             "name": {
               "S": "$name"
@@ -50,7 +50,7 @@
               "N": "$input.path('$.priority')"
             },
             "timestamp": {
-              "S": "$input.path('$.timestamp')"
+              "N": "$context.requestTimeEpoch"
             }
           }
         }

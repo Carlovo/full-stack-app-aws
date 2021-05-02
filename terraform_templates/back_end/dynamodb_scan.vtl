@@ -3,8 +3,8 @@
   {
     "id": "$item.id.S",
     "name": "$item.name.S",
-    "modified": "$item.modified.S",
-    "timestamp": "$item.timestamp.S",
+    "modified": $item.modified.N,
+    "timestamp": $item.timestamp.N,
     "priority": $item.priority.N,
     "check": $item.check.BOOL
   }#if($foreach.hasNext),#end

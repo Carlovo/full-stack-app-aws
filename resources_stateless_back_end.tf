@@ -75,7 +75,7 @@ module "api_gateway_resource_to_dynamodb_item" {
             BOOL = "$input.path('$.check')"
           }
           ":new_modified" = {
-            S = "$input.path('$.modified')"
+            N = "$context.requestTimeEpoch"
           }
         }
       })

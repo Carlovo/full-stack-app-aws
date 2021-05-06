@@ -50,7 +50,7 @@ module "api_gateway_resource_to_dynamodb_item" {
         }
       })
     },
-    PUT = {
+    PATCH = {
       dynamodb_action = "UpdateItem"
       request_transformation = jsonencode({
         TableName = aws_dynamodb_table.main[each.key].name

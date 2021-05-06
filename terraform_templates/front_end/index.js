@@ -310,6 +310,29 @@ var minimalApp = new function () {
         return [valid, nameCell.childNodes[0].value, currentPriority];
     };
 
+    this.bulkRequest = async function (operation, items) {
+
+        // DynamoDB batch operation size limit is 25 items
+        if (items.length > 25) {
+
+            var it, it2, tempArray, chunk = 25;
+
+            for (it = 0, it2 = items.length; it < it2; it += chunk) {
+
+                tempArray = items.slice(it, it + chunk);
+                minimalApp.xhttpQueryBackEnd("POST", "", { "operation": operation, "items": tempArray }, false);
+            };
+
+            // Give the operations a head start before querying the table
+            await new Promise(r => setTimeout(r, 100));
+
+            minimalApp.xhttpGetTableEntries();
+        } else {
+
+            minimalApp.xhttpQueryBackEnd("POST", "", { "operation": operation, "items": items });
+        };
+    };
+
     this.createItem = function () {
 
         var itemDict = {};
@@ -329,7 +352,7 @@ var minimalApp = new function () {
 
             if (cbOptionsOnline.checked) {
 
-                minimalApp.xhttpModifyBackEnd("POST", "", itemDict);
+                minimalApp.bulkRequest("put", [itemDict]);
             } else {
 
                 // this is not foolproof, but it's not used downstream in the current setup
@@ -362,7 +385,7 @@ var minimalApp = new function () {
 
             if (cbOptionsOnline.checked) {
 
-                minimalApp.xhttpModifyBackEnd("PUT", itemDict["id"], itemDict);
+                minimalApp.xhttpQueryBackEnd("PATCH", itemDict["id"], itemDict);
             } else {
 
                 console.log(itemDict);
@@ -379,14 +402,13 @@ var minimalApp = new function () {
         var inputElement = document.getElementById("Check-" + entryNumber);
         var itemDict = tableEntries[entryNumber];
 
-        itemDict["operation"] = "Save";
         itemDict["check"] = inputElement.checked;
 
         var cbOptionsOnline = document.getElementById("Options-Online");
 
         if (cbOptionsOnline.checked) {
 
-            minimalApp.xhttpModifyBackEnd("PUT", itemDict["id"], itemDict);
+            minimalApp.xhttpQueryBackEnd("PATCH", itemDict["id"], itemDict);
         } else {
 
             tableEntries[entryNumber]["check"] = inputElement.checked;
@@ -401,11 +423,10 @@ var minimalApp = new function () {
 
         if (cbOptionsOnline.checked) {
 
-            minimalApp.xhttpModifyBackEnd("DELETE", tableEntries[entryNumber]["id"], {});
+            minimalApp.xhttpQueryBackEnd("DELETE", tableEntries[entryNumber]["id"]);
         } else {
 
             var itemDict = tableEntries[entryNumber];
-            itemDict["operation"] = "Delete";
 
             tableEntries.splice(entryNumber, 1);
 
@@ -430,15 +451,36 @@ var minimalApp = new function () {
             } else {
 
                 var cbCheck = document.getElementById("Check-Bulk-Multiline");
+                var names = taName.value.split("\n");
+                var items = [];
+                var priority = Number(nbPriority.value);
 
-                var itemDict = {};
+                names.forEach(function (name) {
+                    items.push({
+                        "name": name,
+                        "priority": priority,
+                        "check": cbCheck.checked
+                    });
+                });
 
-                itemDict["name"] = taName.value;
-                itemDict["priority"] = Number(nbPriority.value);
-                itemDict["check"] = cbCheck.checked;
-
-                minimalApp.xhttpModifyBackEnd("POST", "", itemDict);
+                minimalApp.bulkRequest("put", items);
             };
+        } else {
+
+            alert("Bulk operations can only be used in online mode");
+        };
+    };
+
+    this.inputBulkDeleteAllCheck = function () {
+
+        var cbOptionsOnline = document.getElementById("Options-Online");
+
+        if (cbOptionsOnline.checked) {
+
+            var checkedItems = tableEntries.filter(item => item["check"]);
+            var checkedItemKeys = checkedItems.map(item => item["id"]);
+
+            minimalApp.bulkRequest("delete", checkedItemKeys);
         } else {
 
             alert("Bulk operations can only be used in online mode");
@@ -490,7 +532,7 @@ var minimalApp = new function () {
         minimalApp.toggleDisabledInput(true);
     };
 
-    this.xhttpModifyBackEnd = function (method, urlAppendix, bodyDict) {
+    this.xhttpQueryBackEnd = function (method, urlAppendix = "", bodyDict = {}, refresh = true) {
 
         var bodyText = JSON.stringify(bodyDict);
         var xhttp = new XMLHttpRequest();
@@ -503,7 +545,10 @@ var minimalApp = new function () {
 
                 if (this.status == 200) {
 
-                    minimalApp.xhttpGetTableEntries();
+                    if (refresh) {
+
+                        minimalApp.xhttpGetTableEntries();
+                    };
                 } else {
 
                     minimalApp.alertInvalidRequest();

@@ -2,60 +2,46 @@
   "RequestItems": {
     ## Templated by Terraform
     "${dynamodb_table_name}": [
-    #set( $nameList = $input.path('$.name').split('\n') )
-    #if( $nameList.size() == 1 )
-      {
-        "PutRequest": {
-          "Item": {
-            "check": {
-              "BOOL": "$input.path('$.check')"
-            },
-            "id": {
-              "S": "$context.requestId"
-            },
-            "modified": {
-              "N": "$context.requestTimeEpoch"
-            },
-            "name": {
-              "S": "$nameList[0]"
-            },
-            "priority": {
-              "N": "$input.path('$.priority')"
-            },
-            "timestamp": {
-              "N": "$context.requestTimeEpoch"
+    #if( $input.path('$.operation') == "delete" )
+      #foreach( $item in $input.path('$.items') )
+        {
+          "DeleteRequest": {
+            "Key": {
+              "id": {
+                "S": "$item"
+              }
             }
           }
-        }
-      }
+        }#if($foreach.hasNext),#end
+      #end
     #else
-    #foreach( $name in $nameList )
-      {
-        "PutRequest": {
-          "Item": {
-            "check": {
-              "BOOL": "$input.path('$.check')"
-            },
+      #foreach( $item in $input.path('$.items') )
+        {
+          "PutRequest": {
+            "Item": {
             "id": {
-              ## Escape Terraform templating
-              "S": "$${context.requestId}-$foreach.count"
-            },
-            "modified": {
-              "N": "$context.requestTimeEpoch"
-            },
-            "name": {
-              "S": "$name"
-            },
-            "priority": {
-              "N": "$input.path('$.priority')"
-            },
-            "timestamp": {
-              "N": "$context.requestTimeEpoch"
+                ## Escape Terraform templating
+                "S": "$${context.requestId}-$foreach.count"
+              },
+              "name": {
+                "S": "$item.name"
+              },
+              "priority": {
+                "N": "$item.priority"
+              },
+              "check": {
+                "BOOL": "$item.check"
+              },
+              "modified": {
+                "N": "$context.requestTimeEpoch"
+              },
+              "timestamp": {
+                "N": "$context.requestTimeEpoch"
+              }
             }
           }
-        }
-      }#if($foreach.hasNext),#end
-    #end
+        }#if($foreach.hasNext),#end
+      #end
     #end
     ]
   }

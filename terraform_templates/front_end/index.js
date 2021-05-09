@@ -13,6 +13,7 @@ const sortOptions = [
 ];
 
 var tableEntries = [];
+var refreshDict = {};
 // Templated by Terraform
 const apiUrl = "${api_url}";
 
@@ -315,16 +316,26 @@ var minimalApp = new function () {
         // DynamoDB batch operation size limit is 25 items
         if (items.length > 25) {
 
+            refreshDict = {};
+
             var it, it2, tempArray, chunk = 25;
 
             for (it = 0, it2 = items.length; it < it2; it += chunk) {
 
+                refreshDict[String(it)] = false;
+
                 tempArray = items.slice(it, it + chunk);
-                minimalApp.xhttpQueryBackEnd("POST", "", { "operation": operation, "items": tempArray }, false);
+                minimalApp.xhttpQueryBackEnd("POST", "", { "operation": operation, "items": tempArray }, String(it));
             };
 
+            var backOff = 5;
+
             // Give the operations a head start before querying the table
-            await new Promise(r => setTimeout(r, 100));
+            while (Object.values(refreshDict).includes(false)) {
+
+                backOff = 2 * backOff;
+                await new Promise(r => setTimeout(r, backOff));
+            };
 
             minimalApp.xhttpGetTableEntries();
         } else {
@@ -532,7 +543,7 @@ var minimalApp = new function () {
         minimalApp.toggleDisabledInput(true);
     };
 
-    this.xhttpQueryBackEnd = function (method, urlAppendix = "", bodyDict = {}, refresh = true) {
+    this.xhttpQueryBackEnd = function (method, urlAppendix = "", bodyDict = {}, refresh = "") {
 
         var bodyText = JSON.stringify(bodyDict);
         var xhttp = new XMLHttpRequest();
@@ -545,9 +556,12 @@ var minimalApp = new function () {
 
                 if (this.status == 200) {
 
-                    if (refresh) {
+                    if (refresh == "") {
 
                         minimalApp.xhttpGetTableEntries();
+                    } else {
+
+                        refreshDict[refresh] = true;
                     };
                 } else {
 

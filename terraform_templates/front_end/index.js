@@ -487,13 +487,20 @@ var minimalApp = new function () {
         };
     };
 
-    this.inputBulkDeleteAllCheck = function () {
+    this.inputBulkDeleteAllOnCheck = function (deleteChecked) {
 
         var cbOptionsOnline = document.getElementById("Options-Online");
 
         if (cbOptionsOnline.checked) {
 
-            var checkedItems = tableEntries.filter(item => item["check"]);
+            if (deleteChecked) {
+
+                var checkedItems = tableEntries.filter(item => item["check"]);
+            } else {
+
+                var checkedItems = tableEntries.filter(item => !(item["check"]));
+            };
+
             var checkedItemKeys = checkedItems.map(item => item["id"]);
 
             minimalApp.batchRequest("delete", checkedItemKeys);

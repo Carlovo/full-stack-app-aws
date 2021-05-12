@@ -311,12 +311,26 @@ var minimalApp = new function () {
         return [valid, nameCell.childNodes[0].value, currentPriority];
     };
 
-    this.bulkRequest = async function (operation, items) {
+    this.backOffGet = async function () {
+
+        var backOff = 5;
+
+        // Give the operations a head start before querying the table
+        while (Object.values(refreshDict).includes(false)) {
+
+            backOff = 2 * backOff;
+            await new Promise(r => setTimeout(r, backOff));
+        };
+
+        minimalApp.xhttpGetTableEntries();
+
+        refreshDict = {};
+    };
+
+    this.batchRequest = function (operation, items) {
 
         // DynamoDB batch operation size limit is 25 items
         if (items.length > 25) {
-
-            refreshDict = {};
 
             var it, it2, tempArray, chunk = 25;
 
@@ -328,16 +342,7 @@ var minimalApp = new function () {
                 minimalApp.xhttpQueryBackEnd("POST", "", { "operation": operation, "items": tempArray }, String(it));
             };
 
-            var backOff = 5;
-
-            // Give the operations a head start before querying the table
-            while (Object.values(refreshDict).includes(false)) {
-
-                backOff = 2 * backOff;
-                await new Promise(r => setTimeout(r, backOff));
-            };
-
-            minimalApp.xhttpGetTableEntries();
+            minimalApp.backOffGet();
         } else {
 
             minimalApp.xhttpQueryBackEnd("POST", "", { "operation": operation, "items": items });
@@ -363,7 +368,7 @@ var minimalApp = new function () {
 
             if (cbOptionsOnline.checked) {
 
-                minimalApp.bulkRequest("put", [itemDict]);
+                minimalApp.batchRequest("put", [itemDict]);
             } else {
 
                 // this is not foolproof, but it's not used downstream in the current setup
@@ -474,7 +479,7 @@ var minimalApp = new function () {
                     });
                 });
 
-                minimalApp.bulkRequest("put", items);
+                minimalApp.batchRequest("put", items);
             };
         } else {
 
@@ -491,7 +496,36 @@ var minimalApp = new function () {
             var checkedItems = tableEntries.filter(item => item["check"]);
             var checkedItemKeys = checkedItems.map(item => item["id"]);
 
-            minimalApp.bulkRequest("delete", checkedItemKeys);
+            minimalApp.batchRequest("delete", checkedItemKeys);
+        } else {
+
+            alert("Bulk operations can only be used in online mode");
+        };
+    };
+
+    this.inputBulkInvertCheck = function () {
+
+        var cbOptionsOnline = document.getElementById("Options-Online");
+
+        if (cbOptionsOnline.checked) {
+
+            tableEntries.forEach(function (entry) {
+
+                refreshDict[entry["id"]] = false;
+
+                minimalApp.xhttpQueryBackEnd(
+                    "PATCH",
+                    entry["id"],
+                    {
+                        "name": entry["name"],
+                        "priority": entry["priority"],
+                        "check": !(entry["check"])
+                    },
+                    entry["id"]
+                );
+            });
+
+            minimalApp.backOffGet();
         } else {
 
             alert("Bulk operations can only be used in online mode");

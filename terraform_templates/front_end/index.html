@@ -253,15 +253,17 @@
                 </tbody>
             </table>
             <div>
+                <p>Bulk delete</p>
                 <input type="button" value="Delete all checked items"
-                    onclick="minimalApp.inputBulkDeleteAllOnCheck(true)">
-            </div>
-            <div>
+                    onclick="minimalApp.inputBulkDeleteAllOnCheck(true)"><br>
                 <input type="button" value="Delete all unchecked items"
                     onclick="minimalApp.inputBulkDeleteAllOnCheck(false)">
             </div>
             <div>
-                <input type="button" value="Invert check for all items" onclick="minimalApp.inputBulkInvertCheck()">
+                <p>Bulk check</p>
+                <input type="button" value="Invert check for all items" onclick="minimalApp.inputBulkInvertCheck()"><br>
+                <input type="button" value="Uncheck all checked items" onclick="minimalApp.inputBulkInvertCheck(1)"><br>
+                <input type="button" value="Check all uncheck items" onclick="minimalApp.inputBulkInvertCheck(-1)">
             </div>
         </details>
     </div>

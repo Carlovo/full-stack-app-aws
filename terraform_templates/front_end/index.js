@@ -510,13 +510,24 @@ var minimalApp = new function () {
         };
     };
 
-    this.inputBulkInvertCheck = function () {
+    this.inputBulkInvertCheck = function (select = 0) {
 
         var cbOptionsOnline = document.getElementById("Options-Online");
 
         if (cbOptionsOnline.checked) {
 
-            tableEntries.forEach(function (entry) {
+            if (select == 1) {
+
+                var tableCopy = tableEntries.filter(item => item["check"]);
+            } else if (select == -1) {
+
+                var tableCopy = tableEntries.filter(item => !(item["check"]));
+            } else {
+
+                var tableCopy = tableEntries;
+            };
+
+            tableCopy.forEach(function (entry) {
 
                 refreshDict[entry["id"]] = false;
 

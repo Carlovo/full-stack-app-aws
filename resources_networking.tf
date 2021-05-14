@@ -63,14 +63,16 @@ resource "aws_cloudfront_distribution" "front_end" {
     for_each = var.alternate_domain_name == "" ? [1] : []
     content {
       cloudfront_default_certificate = true
+      minimum_protocol_version       = "TLSv1.2_2019"
     }
   }
 
   dynamic "viewer_certificate" {
     for_each = var.alternate_domain_name == "" ? [] : [1]
     content {
-      acm_certificate_arn = module.certificate_and_validation[0].acm_certificate_arn
-      ssl_support_method  = "sni-only"
+      acm_certificate_arn      = module.certificate_and_validation[0].acm_certificate_arn
+      ssl_support_method       = "sni-only"
+      minimum_protocol_version = "TLSv1.2_2019"
     }
   }
 }

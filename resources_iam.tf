@@ -100,3 +100,45 @@ resource "aws_iam_role_policy" "api_permissions" {
 
   policy = data.aws_iam_policy_document.api_permissions.json
 }
+
+data "aws_iam_policy_document" "lambda_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "lambda_s3_presign" {
+  name = "${aws_s3_bucket.s3_presign.id}-lambda-s3-presign"
+
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
+}
+
+data "aws_iam_policy_document" "lambda_s3_presign" {
+  statement {
+    actions = [
+      "s3:PutObject",
+    ]
+    resources = [
+      "${aws_s3_bucket.s3_presign.arn}/*",
+    ]
+  }
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["${aws_cloudwatch_log_group.lambda_s3_presign.arn}:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_s3_presign" {
+  name = "${aws_s3_bucket.s3_presign.id}-lambda-s3-presign"
+  role = aws_iam_role.lambda_s3_presign.id
+
+  policy = data.aws_iam_policy_document.lambda_s3_presign.json
+}

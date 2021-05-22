@@ -30,7 +30,8 @@ resource "aws_s3_bucket_object" "script" {
   content = templatefile(
     "./terraform_templates/front_end/index.js",
     {
-      api_url = var.alternate_domain_name == "" ? aws_api_gateway_deployment.crud.invoke_url : "https://${aws_api_gateway_base_path_mapping.alias[0].domain_name}/"
+      crud_api_url       = var.alternate_domain_name == "" ? aws_api_gateway_deployment.crud.invoke_url : "https://${aws_api_gateway_base_path_mapping.alias[0].domain_name}/"
+      s3_presign_api_url = aws_apigatewayv2_stage.s3_presign.invoke_url
     }
   )
 }

@@ -15,7 +15,8 @@ const sortOptions = [
 var tableEntries = [];
 var refreshDict = {};
 // Templated by Terraform
-const apiUrl = "${api_url}";
+const crudApiUrl = "${crud_api_url}";
+const S3PresignApiUrl = "${s3_presign_api_url}";
 
 const queryParams = new URLSearchParams(window.location.search);
 const queryTable = queryParams.get("table");
@@ -588,7 +589,7 @@ var minimalApp = new function () {
             };
         };
 
-        xhttp.open("GET", apiUrl + queryTable);
+        xhttp.open("GET", crudApiUrl + queryTable);
 
         xhttp.send();
 
@@ -622,9 +623,82 @@ var minimalApp = new function () {
             };
         };
 
-        xhttp.open(method, apiUrl + queryTable + "/" + urlAppendix);
+        xhttp.open(method, crudApiUrl + queryTable + "/" + urlAppendix);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(bodyText);
+
+        minimalApp.toggleDisabledInput(true);
+    };
+
+    this.xhttpGetUploadURL = function () {
+
+        var files = document.getElementById("Bulk-Image-Multiline").files;
+
+        if (files.length == 1) {
+
+            var xhttp = new XMLHttpRequest();
+
+            xhttp.onreadystatechange = function () {
+
+                if (this.readyState == 4) {
+
+                    console.log(this.responseText);
+
+                    if (this.status == 200) {
+
+                        minimalApp.xhttpUploadFile(this.responseText);
+                    } else {
+
+                        minimalApp.alertInvalidRequest();
+                    };
+                };
+            };
+
+            xhttp.open("GET", S3PresignApiUrl);
+            xhttp.send();
+
+            minimalApp.toggleDisabledInput(true);
+        } else {
+
+            alert("Please select one file to upload.");
+        };
+    };
+
+    this.xhttpUploadFile = function (presignedInfoText) {
+
+        var presignedInfoDict = JSON.parse(presignedInfoText);
+
+        var file = document.getElementById("Bulk-Image-Multiline").files[0];
+        console.log(file);
+
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onreadystatechange = function () {
+
+            if (this.readyState == 4) {
+
+                if (this.status == 204) {
+
+                    minimalApp.xhttpGetTableEntries();
+                } else {
+
+                    minimalApp.alertInvalidRequest();
+                };
+            };
+        };
+
+        var formData = new FormData();
+
+        Object.entries(presignedInfoDict["fields"]).forEach(([k, v]) => {
+            formData.append(k, v);
+        });
+
+        formData.append("file", file);
+
+        console.log(formData);
+
+        xhttp.open("POST", presignedInfoDict["url"]);
+        xhttp.send(formData);
 
         minimalApp.toggleDisabledInput(true);
     };

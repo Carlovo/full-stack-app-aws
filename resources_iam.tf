@@ -120,12 +120,8 @@ resource "aws_iam_role" "lambda_s3_presign" {
 
 data "aws_iam_policy_document" "lambda_s3_presign" {
   statement {
-    actions = [
-      "s3:PutObject",
-    ]
-    resources = [
-      "${aws_s3_bucket.s3_presign.arn}/*",
-    ]
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
   }
   statement {
     actions = [
@@ -141,4 +137,35 @@ resource "aws_iam_role_policy" "lambda_s3_presign" {
   role = aws_iam_role.lambda_s3_presign.id
 
   policy = data.aws_iam_policy_document.lambda_s3_presign.json
+}
+
+resource "aws_iam_role" "lambda_textract" {
+  name = "${aws_s3_bucket.s3_presign.id}-lambda-textract"
+
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
+}
+
+data "aws_iam_policy_document" "lambda_textract" {
+  statement {
+    actions   = ["textract:DetectDocumentText"]
+    resources = ["*"]
+  }
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
+  }
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["${aws_cloudwatch_log_group.lambda_textract.arn}:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_textract" {
+  name = "${aws_s3_bucket.s3_presign.id}-lambda-textract"
+  role = aws_iam_role.lambda_textract.id
+
+  policy = data.aws_iam_policy_document.lambda_textract.json
 }

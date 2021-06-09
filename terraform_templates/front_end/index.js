@@ -453,6 +453,21 @@ var minimalApp = new function () {
         };
     };
 
+    this.inputBulkImage = function (nameList) {
+
+        var items = [];
+
+        nameList.forEach(function (name) {
+            items.push({
+                "name": name,
+                "priority": 0,
+                "check": false
+            });
+        });
+
+        minimalApp.batchRequest("put", items);
+    };
+
     this.inputBulkMultiline = function () {
 
         var cbOptionsOnline = document.getElementById("Options-Online");
@@ -679,7 +694,7 @@ var minimalApp = new function () {
 
                 if (this.status == 204) {
 
-                    minimalApp.xhttpGetTableEntries();
+                    minimalApp.xhttpAnalyzeImage(presignedInfoDict["fields"]["key"]);
                 } else {
 
                     minimalApp.alertInvalidRequest();
@@ -701,6 +716,35 @@ var minimalApp = new function () {
         xhttp.send(formData);
 
         minimalApp.toggleDisabledInput(true);
+    };
+
+    this.xhttpAnalyzeImage = function (imageName) {
+
+        var bodyText = JSON.stringify({ "name": imageName });
+        var xhttp = new XMLHttpRequest();
+
+        console.log(bodyText);
+
+        xhttp.onreadystatechange = function () {
+
+            if (this.readyState == 4) {
+
+                console.log(this.responseText);
+
+                if (this.status == 200) {
+
+                    var nameList = JSON.parse(this.responseText);
+
+                    minimalApp.inputBulkImage(nameList);
+                } else {
+
+                    minimalApp.alertInvalidRequest();
+                };
+            };
+        };
+
+        xhttp.open("POST", S3PresignApiUrl);
+        xhttp.send(bodyText);
     };
 
     this.editItem = function (oButton) {

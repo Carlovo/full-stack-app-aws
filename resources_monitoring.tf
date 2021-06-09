@@ -11,3 +11,8 @@ resource "aws_cloudwatch_log_group" "lambda_s3_presign" {
   name              = "/aws/lambda/${aws_lambda_function.s3_presign.function_name}"
   retention_in_days = 60
 }
+
+resource "aws_cloudwatch_log_group" "lambda_textract" {
+  name              = "/aws/lambda/${aws_lambda_function.textract.function_name}"
+  retention_in_days = 60
+}

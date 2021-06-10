@@ -43,7 +43,7 @@ resource "aws_lambda_function" "s3_presign" {
   filename         = data.archive_file.s3_presign_api.output_path
   source_code_hash = data.archive_file.s3_presign_api.output_base64sha256
 
-  timeout = 30
+  timeout = 90
   handler = "s3_presign_api.lambda_handler"
   runtime = "python3.8"
 
@@ -124,6 +124,26 @@ resource "aws_apigatewayv2_stage" "s3_presign" {
   api_id      = aws_apigatewayv2_api.s3_presign.id
   name        = "$default"
   auto_deploy = true
+
+  dynamic "access_log_settings" {
+    for_each = var.log_api ? [1] : []
+
+    content {
+      destination_arn = aws_cloudwatch_log_group.textract_api[0].arn
+      format = jsonencode(
+        {
+          httpMethod     = "$context.httpMethod"
+          ip             = "$context.identity.sourceIp"
+          protocol       = "$context.protocol"
+          requestId      = "$context.requestId"
+          requestTime    = "$context.requestTime"
+          responseLength = "$context.responseLength"
+          routeKey       = "$context.routeKey"
+          status         = "$context.status"
+        }
+      )
+    }
+  }
 }
 
 # Coupling

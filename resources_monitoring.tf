@@ -7,6 +7,13 @@ resource "aws_api_gateway_account" "this_region" {
   cloudwatch_role_arn = aws_iam_role.api_gateway_logging[0].arn
 }
 
+resource "aws_cloudwatch_log_group" "textract_api" {
+  count = var.log_api ? 1 : 0
+
+  name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.s3_presign.id}"
+  retention_in_days = 60
+}
+
 resource "aws_cloudwatch_log_group" "lambda_s3_presign" {
   name              = "/aws/lambda/${aws_lambda_function.s3_presign.function_name}"
   retention_in_days = 60

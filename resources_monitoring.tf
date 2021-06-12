@@ -4,7 +4,7 @@
 resource "aws_api_gateway_account" "this_region" {
   count = var.api_gateway_log_role ? 1 : 0
 
-  cloudwatch_role_arn = aws_iam_role.api_gateway_logging[0].arn
+  cloudwatch_role_arn = module.api_gateway_log_cloudwatch_role[0].role_arn
 }
 
 resource "aws_cloudwatch_log_group" "textract_api" {

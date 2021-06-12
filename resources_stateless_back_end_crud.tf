@@ -15,7 +15,7 @@ module "api_gateway_resource_to_dynamodb_table" {
   rest_api_id        = aws_api_gateway_rest_api.crud.id
   parent_id          = aws_api_gateway_rest_api.crud.root_resource_id
   path_part          = each.key
-  execution_role_arn = aws_iam_role.api_permissions.arn
+  execution_role_arn = module.api_gateway_crud_dynamodb_role.role_arn
 
   integrations = {
     GET = {
@@ -43,7 +43,7 @@ module "api_gateway_resource_to_dynamodb_item" {
   rest_api_id        = aws_api_gateway_rest_api.crud.id
   parent_id          = module.api_gateway_resource_to_dynamodb_table[each.key].api_gateway_method_resource_id
   path_part          = "{item}"
-  execution_role_arn = aws_iam_role.api_permissions.arn
+  execution_role_arn = module.api_gateway_crud_dynamodb_role.role_arn
 
   integrations = {
     DELETE = {

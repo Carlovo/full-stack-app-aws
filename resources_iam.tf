@@ -28,31 +28,17 @@ resource "aws_s3_bucket_policy" "cloudfront_s3_policy" {
   policy = data.aws_iam_policy_document.cloudfront_s3_policy.json
 }
 
-data "aws_iam_policy_document" "api_gateway_assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["apigateway.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "api_gateway_logging" {
+module "api_gateway_log_cloudwatch_role" {
   count = var.api_gateway_log_role ? 1 : 0
+
+  source = "./modules/service_role"
 
   # There can only be one
   # per region
-  name = "api-gateway-cloudwatch-${data.aws_region.current.name}"
+  role_name    = "api-gateway-cloudwatch-${data.aws_region.current.name}"
+  service_name = "apigateway"
 
-  assume_role_policy = data.aws_iam_policy_document.api_gateway_assume_role_policy.json
-}
-
-data "aws_iam_policy_document" "api_gateway_logging" {
-  count = var.api_gateway_log_role ? 1 : 0
-
-  statement {
+  permission_statements = [{
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
@@ -64,26 +50,16 @@ data "aws_iam_policy_document" "api_gateway_logging" {
     ]
     # this seems okay, because it's basically a service linked role
     resources = ["*"]
-  }
+  }]
 }
 
-resource "aws_iam_role_policy" "api_gateway_logging" {
-  count = var.api_gateway_log_role ? 1 : 0
+module "api_gateway_crud_dynamodb_role" {
+  source = "./modules/service_role"
 
-  name = aws_iam_role.api_gateway_logging[0].name
-  role = aws_iam_role.api_gateway_logging[0].id
+  role_name    = "${aws_s3_bucket.front_end.id}-api-gateway-dynamodb"
+  service_name = "apigateway"
 
-  policy = data.aws_iam_policy_document.api_gateway_logging[0].json
-}
-
-resource "aws_iam_role" "api_permissions" {
-  name = "${aws_s3_bucket.front_end.id}-api-gateway-dynamodb"
-
-  assume_role_policy = data.aws_iam_policy_document.api_gateway_assume_role_policy.json
-}
-
-data "aws_iam_policy_document" "api_permissions" {
-  statement {
+  permission_statements = [{
     actions = [
       "dynamodb:Scan",
       "dynamodb:BatchWriteItem",
@@ -91,81 +67,51 @@ data "aws_iam_policy_document" "api_permissions" {
       "dynamodb:UpdateItem"
     ]
     resources = [for table in var.tables : aws_dynamodb_table.main[table].arn]
-  }
+  }]
 }
 
-resource "aws_iam_role_policy" "api_permissions" {
-  name = "${aws_s3_bucket.front_end.id}-api-gateway-dynamodb"
-  role = aws_iam_role.api_permissions.id
+module "s3_presign_lambda_role" {
+  source = "./modules/service_role"
 
-  policy = data.aws_iam_policy_document.api_permissions.json
-}
+  role_name    = "${aws_s3_bucket.s3_presign.id}-lambda-s3-presign"
+  service_name = "lambda"
 
-data "aws_iam_policy_document" "lambda_assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
+  permission_statements = [
+    {
+      actions   = ["s3:PutObject"]
+      resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
+    },
+    {
+      actions = [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ]
+      resources = ["${aws_cloudwatch_log_group.lambda_s3_presign.arn}:*"]
     }
-  }
+  ]
 }
 
-resource "aws_iam_role" "lambda_s3_presign" {
-  name = "${aws_s3_bucket.s3_presign.id}-lambda-s3-presign"
+module "textract_lambda_role" {
+  source = "./modules/service_role"
 
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
-}
+  role_name    = "${aws_s3_bucket.s3_presign.id}-lambda-textract"
+  service_name = "lambda"
 
-data "aws_iam_policy_document" "lambda_s3_presign" {
-  statement {
-    actions   = ["s3:PutObject"]
-    resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
-  }
-  statement {
-    actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-    resources = ["${aws_cloudwatch_log_group.lambda_s3_presign.arn}:*"]
-  }
-}
-
-resource "aws_iam_role_policy" "lambda_s3_presign" {
-  name = "${aws_s3_bucket.s3_presign.id}-lambda-s3-presign"
-  role = aws_iam_role.lambda_s3_presign.id
-
-  policy = data.aws_iam_policy_document.lambda_s3_presign.json
-}
-
-resource "aws_iam_role" "lambda_textract" {
-  name = "${aws_s3_bucket.s3_presign.id}-lambda-textract"
-
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
-}
-
-data "aws_iam_policy_document" "lambda_textract" {
-  statement {
-    actions   = ["textract:DetectDocumentText"]
-    resources = ["*"]
-  }
-  statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
-  }
-  statement {
-    actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-    resources = ["${aws_cloudwatch_log_group.lambda_textract.arn}:*"]
-  }
-}
-
-resource "aws_iam_role_policy" "lambda_textract" {
-  name = "${aws_s3_bucket.s3_presign.id}-lambda-textract"
-  role = aws_iam_role.lambda_textract.id
-
-  policy = data.aws_iam_policy_document.lambda_textract.json
+  permission_statements = [
+    {
+      actions   = ["textract:DetectDocumentText"]
+      resources = ["*"]
+    },
+    {
+      actions   = ["s3:GetObject"]
+      resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
+    },
+    {
+      actions = [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ]
+      resources = ["${aws_cloudwatch_log_group.lambda_textract.arn}:*"]
+    }
+  ]
 }

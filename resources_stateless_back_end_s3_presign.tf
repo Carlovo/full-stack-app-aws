@@ -46,7 +46,7 @@ resource "aws_lambda_function" "s3_presign" {
   handler = "s3_presign_api.lambda_handler"
   runtime = "python3.8"
 
-  role = aws_iam_role.lambda_s3_presign.arn
+  role = module.s3_presign_lambda_role.role_arn
 }
 
 data "archive_file" "textract_api" {
@@ -71,7 +71,7 @@ resource "aws_lambda_function" "textract" {
   handler = "textract_api.lambda_handler"
   runtime = "python3.8"
 
-  role = aws_iam_role.lambda_textract.arn
+  role = module.textract_lambda_role.role_arn
 }
 
 # API Gateway V2

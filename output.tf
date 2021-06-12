@@ -1,9 +1,9 @@
-output "api_gateway_crud_invoke_url" {
-  value = aws_api_gateway_deployment.crud.invoke_url
+output "crud_api_invoke_url" {
+  value = var.alternate_domain_name == "" ? aws_api_gateway_deployment.crud.invoke_url : aws_route53_record.crud_api_alias[0].name
 }
 
-output "apigatewayv2_s3_presign_invoke_url" {
-  value = aws_apigatewayv2_stage.s3_presign.invoke_url
+output "upload_api_invoke_url" {
+  value = var.alternate_domain_name == "" ? aws_apigatewayv2_stage.s3_presign.invoke_url : aws_route53_record.upload_api_alias[0].name
 }
 
 output "cloudfront_endpoint" {
@@ -11,5 +11,5 @@ output "cloudfront_endpoint" {
 }
 
 output "insecure_only_s3_endpoint" {
-  value = aws_s3_bucket.front_end.bucket_regional_domain_name
+  value = var.insecure ? aws_s3_bucket.front_end.bucket_regional_domain_name : "only available when deploying with -var='insecure=true'"
 }

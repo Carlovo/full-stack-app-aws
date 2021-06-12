@@ -1,5 +1,10 @@
 resource "aws_api_gateway_rest_api" "crud" {
-  name = aws_s3_bucket.front_end.id
+  name                         = aws_s3_bucket.front_end.id
+  disable_execute_api_endpoint = var.alternate_domain_name == "" ? false : true
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
 }
 
 module "api_gateway_resource_to_dynamodb_table" {
@@ -126,9 +131,13 @@ resource "aws_api_gateway_method_settings" "crud" {
 resource "aws_api_gateway_domain_name" "alias" {
   count = var.alternate_domain_name == "" ? 0 : 1
 
-  certificate_arn = module.certificate_and_validation[0].acm_certificate_arn
-  domain_name     = local.back_end_alternate_domain_name
-  security_policy = "TLS_1_2"
+  regional_certificate_arn = module.certificate_and_validation_back_end[0].acm_certificate_arn
+  domain_name              = local.alternate_domain_names["back_end"]["crud_api"]
+  security_policy          = "TLS_1_2"
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
 }
 
 resource "aws_api_gateway_base_path_mapping" "alias" {

@@ -1,14 +1,21 @@
-module "certificate_and_validation" {
+module "certificate_and_validation_front_end" {
   count = var.alternate_domain_name == "" ? 0 : 1
 
   source = "./modules/certificate_and_validation"
 
   # CloudFront accepts only ACM certificates from US-EAST-1
-  providers = {
-    aws = aws.useast1
-  }
+  providers = { aws = aws.useast1 }
 
-  domain_names = concat(local.front_end_alternate_domain_names, [local.back_end_alternate_domain_name])
+  domain_names = values(local.alternate_domain_names["front_end"])
+  zone_id      = data.aws_route53_zone.selected[0].zone_id
+}
+
+module "certificate_and_validation_back_end" {
+  count = var.alternate_domain_name == "" ? 0 : 1
+
+  source = "./modules/certificate_and_validation"
+
+  domain_names = values(local.alternate_domain_names["back_end"])
   zone_id      = data.aws_route53_zone.selected[0].zone_id
 }
 
@@ -22,7 +29,7 @@ resource "aws_cloudfront_distribution" "front_end" {
     }
   }
 
-  aliases             = local.front_end_alternate_domain_names
+  aliases             = values(local.alternate_domain_names["front_end"])
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = aws_s3_bucket_object.index.key
@@ -70,7 +77,7 @@ resource "aws_cloudfront_distribution" "front_end" {
   dynamic "viewer_certificate" {
     for_each = var.alternate_domain_name == "" ? [] : [1]
     content {
-      acm_certificate_arn      = module.certificate_and_validation[0].acm_certificate_arn
+      acm_certificate_arn      = module.certificate_and_validation_front_end[0].acm_certificate_arn
       ssl_support_method       = "sni-only"
       minimum_protocol_version = "TLSv1.2_2019"
     }
@@ -78,7 +85,7 @@ resource "aws_cloudfront_distribution" "front_end" {
 }
 
 module "alias_a_records" {
-  for_each = toset(local.front_end_alternate_domain_names)
+  for_each = toset(values(local.alternate_domain_names["front_end"]))
 
   source = "./modules/route53_alias_a_records"
 
@@ -90,7 +97,7 @@ module "alias_a_records" {
 }
 
 # API Gateway does not support ipv6 AAAA records
-resource "aws_route53_record" "api_alias" {
+resource "aws_route53_record" "crud_api_alias" {
   count = var.alternate_domain_name == "" ? 0 : 1
 
   zone_id = data.aws_route53_zone.selected[0].zone_id
@@ -99,7 +106,21 @@ resource "aws_route53_record" "api_alias" {
 
   alias {
     evaluate_target_health = false # not support for API Gateway, but parameter must be present anyway
-    name                   = aws_api_gateway_domain_name.alias[0].cloudfront_domain_name
-    zone_id                = aws_api_gateway_domain_name.alias[0].cloudfront_zone_id
+    name                   = aws_api_gateway_domain_name.alias[0].regional_domain_name
+    zone_id                = aws_api_gateway_domain_name.alias[0].regional_zone_id
+  }
+}
+
+resource "aws_route53_record" "upload_api_alias" {
+  count = var.alternate_domain_name == "" ? 0 : 1
+
+  zone_id = data.aws_route53_zone.selected[0].zone_id
+  name    = aws_apigatewayv2_domain_name.alias[0].domain_name
+  type    = "A"
+
+  alias {
+    evaluate_target_health = false # not support for API Gateway, but parameter must be present anyway
+    name                   = aws_apigatewayv2_domain_name.alias[0].domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.alias[0].domain_name_configuration[0].hosted_zone_id
   }
 }

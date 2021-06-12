@@ -29,8 +29,16 @@ variable "api_gateway_log_role" {
 }
 
 locals {
-  front_end_alternate_domain_names = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, "www.${var.alternate_domain_name}"]
-  back_end_alternate_domain_name   = "api.${var.alternate_domain_name}"
+  alternate_domain_names = var.alternate_domain_name == "" ? {} : {
+    front_end = {
+      apex = var.alternate_domain_name
+      www  = "www.${var.alternate_domain_name}"
+    }
+    back_end = {
+      crud_api   = "crud-api.${var.alternate_domain_name}"
+      upload_api = "upload-api.${var.alternate_domain_name}"
+    }
+  }
   # Using the full S3 bucket name would make a too long name for DynamoDB
   unique_name_prefix = "tf-${split("-", aws_s3_bucket.front_end.id)[1]}-"
 }

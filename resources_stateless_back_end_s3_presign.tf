@@ -43,7 +43,6 @@ resource "aws_lambda_function" "s3_presign" {
   filename         = data.archive_file.s3_presign_api.output_path
   source_code_hash = data.archive_file.s3_presign_api.output_base64sha256
 
-  timeout = 90
   handler = "s3_presign_api.lambda_handler"
   runtime = "python3.8"
 
@@ -68,6 +67,7 @@ resource "aws_lambda_function" "textract" {
   filename         = data.archive_file.textract_api.output_path
   source_code_hash = data.archive_file.textract_api.output_base64sha256
 
+  timeout = 90
   handler = "textract_api.lambda_handler"
   runtime = "python3.8"
 
@@ -77,8 +77,9 @@ resource "aws_lambda_function" "textract" {
 # API Gateway V2
 
 resource "aws_apigatewayv2_api" "s3_presign" {
-  name          = aws_s3_bucket.s3_presign.id
-  protocol_type = "HTTP"
+  name                         = aws_s3_bucket.s3_presign.id
+  protocol_type                = "HTTP"
+  disable_execute_api_endpoint = var.alternate_domain_name == "" ? false : true
 
   cors_configuration {
     allow_methods = [
@@ -144,6 +145,26 @@ resource "aws_apigatewayv2_stage" "s3_presign" {
       )
     }
   }
+}
+
+resource "aws_apigatewayv2_domain_name" "alias" {
+  count = var.alternate_domain_name == "" ? 0 : 1
+
+  domain_name = local.alternate_domain_names["back_end"]["upload_api"]
+
+  domain_name_configuration {
+    certificate_arn = module.certificate_and_validation_back_end[0].acm_certificate_arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+
+resource "aws_apigatewayv2_api_mapping" "alias" {
+  count = var.alternate_domain_name == "" ? 0 : 1
+
+  api_id      = aws_apigatewayv2_api.s3_presign.id
+  domain_name = aws_apigatewayv2_domain_name.alias[0].id
+  stage       = aws_apigatewayv2_stage.s3_presign.id
 }
 
 # Coupling

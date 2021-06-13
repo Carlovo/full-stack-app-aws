@@ -13,13 +13,3 @@ resource "aws_cloudwatch_log_group" "textract_api" {
   name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.s3_presign.id}"
   retention_in_days = 60
 }
-
-resource "aws_cloudwatch_log_group" "lambda_s3_presign" {
-  name              = "/aws/lambda/${aws_lambda_function.s3_presign.function_name}"
-  retention_in_days = 60
-}
-
-resource "aws_cloudwatch_log_group" "lambda_textract" {
-  name              = "/aws/lambda/${aws_lambda_function.textract.function_name}"
-  retention_in_days = 60
-}

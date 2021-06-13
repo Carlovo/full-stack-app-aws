@@ -25,53 +25,41 @@ resource "aws_s3_bucket" "s3_presign" {
 
 # Lambda
 
-data "archive_file" "s3_presign_api" {
-  type        = "zip"
-  output_path = "./terraform_templates/back_end/s3_presign_api.zip"
+module "lambda_function_s3_presign_api" {
+  source = "./modules/python_lambda_function"
 
-  source {
-    content = templatefile("./terraform_templates/back_end/s3_presign_api.py", {
-      bucket_name = aws_s3_bucket.s3_presign.id
-    })
-    filename = "s3_presign_api.py"
-  }
-}
-
-resource "aws_lambda_function" "s3_presign" {
   function_name = "${aws_s3_bucket.s3_presign.id}-s3-presign"
 
-  filename         = data.archive_file.s3_presign_api.output_path
-  source_code_hash = data.archive_file.s3_presign_api.output_base64sha256
+  source_code = templatefile("./terraform_templates/back_end/s3_presign_api.py", {
+    bucket_name = aws_s3_bucket.s3_presign.id
+  })
 
-  handler = "s3_presign_api.lambda_handler"
-  runtime = "python3.8"
-
-  role = module.s3_presign_lambda_role.role_arn
+  extra_permission_statements = [{
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
+  }]
 }
 
-data "archive_file" "textract_api" {
-  type        = "zip"
-  output_path = "./terraform_templates/back_end/textract_api.zip"
+module "lambda_function_textract_api" {
+  source = "./modules/python_lambda_function"
 
-  source {
-    content = templatefile("./terraform_templates/back_end/textract_api.py", {
-      bucket_name = aws_s3_bucket.s3_presign.id
-    })
-    filename = "textract_api.py"
-  }
-}
-
-resource "aws_lambda_function" "textract" {
   function_name = "${aws_s3_bucket.s3_presign.id}-textract"
+  timeout       = 90
 
-  filename         = data.archive_file.textract_api.output_path
-  source_code_hash = data.archive_file.textract_api.output_base64sha256
+  source_code = templatefile("./terraform_templates/back_end/textract_api.py", {
+    bucket_name = aws_s3_bucket.s3_presign.id
+  })
 
-  timeout = 90
-  handler = "textract_api.lambda_handler"
-  runtime = "python3.8"
-
-  role = module.textract_lambda_role.role_arn
+  extra_permission_statements = [
+    {
+      actions   = ["textract:DetectDocumentText"]
+      resources = ["*"]
+    },
+    {
+      actions   = ["s3:GetObject"]
+      resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
+    }
+  ]
 }
 
 # API Gateway V2
@@ -96,7 +84,7 @@ resource "aws_apigatewayv2_integration" "s3_presign" {
   integration_type = "AWS_PROXY"
 
   integration_method     = "POST"
-  integration_uri        = aws_lambda_function.s3_presign.arn
+  integration_uri        = module.lambda_function_s3_presign_api.function_arn
   payload_format_version = "2.0"
 }
 
@@ -111,7 +99,7 @@ resource "aws_apigatewayv2_integration" "textract" {
   integration_type = "AWS_PROXY"
 
   integration_method     = "POST"
-  integration_uri        = aws_lambda_function.textract.arn
+  integration_uri        = module.lambda_function_textract_api.function_arn
   payload_format_version = "2.0"
 }
 
@@ -172,7 +160,7 @@ resource "aws_apigatewayv2_api_mapping" "alias" {
 resource "aws_lambda_permission" "apigwv2_s3_presign" {
   statement_id  = "AllowAPIGatewayV2Invoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.s3_presign.function_name
+  function_name = "${aws_s3_bucket.s3_presign.id}-s3-presign"
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.s3_presign.execution_arn}/${aws_apigatewayv2_stage.s3_presign.name}/GET/*"
 }
@@ -180,7 +168,7 @@ resource "aws_lambda_permission" "apigwv2_s3_presign" {
 resource "aws_lambda_permission" "apigwv2_textract" {
   statement_id  = "AllowAPIGatewayV2Invoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.textract.function_name
+  function_name = "${aws_s3_bucket.s3_presign.id}-textract"
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.s3_presign.execution_arn}/${aws_apigatewayv2_stage.s3_presign.name}/POST/*"
 }

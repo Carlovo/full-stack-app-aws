@@ -13,5 +13,5 @@ variable "permission_statements" {
     actions   = list(string)
     resources = list(string)
   }))
-  description = "First is the domain name for which the certificate will be issued, the rest are subject alternative names."
+  description = "The permissions of the service role."
 }

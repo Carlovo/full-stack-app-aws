@@ -10,6 +10,6 @@ resource "aws_api_gateway_account" "this_region" {
 resource "aws_cloudwatch_log_group" "textract_api" {
   count = var.log_api ? 1 : 0
 
-  name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.s3_presign.id}"
+  name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.textract.id}"
   retention_in_days = 60
 }

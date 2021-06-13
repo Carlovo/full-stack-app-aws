@@ -3,7 +3,7 @@ output "crud_api_invoke_url" {
 }
 
 output "upload_api_invoke_url" {
-  value = var.alternate_domain_name == "" ? aws_apigatewayv2_stage.s3_presign.invoke_url : aws_route53_record.upload_api_alias[0].name
+  value = var.alternate_domain_name == "" ? aws_apigatewayv2_stage.textract.invoke_url : aws_route53_record.upload_api_alias[0].name
 }
 
 output "cloudfront_endpoint" {

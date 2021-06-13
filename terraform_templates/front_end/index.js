@@ -712,7 +712,10 @@ var minimalApp = new function () {
 
         console.log(formData);
 
-        xhttp.open("POST", presignedInfoDict["url"]);
+        // Templated by Terraform
+        // The presigned response also contains the bucket url,
+        // but it can take up to 24 hours before the global url works.
+        xhttp.open("POST", "${image_upload_bucket_regional_url}");
         xhttp.send(formData);
 
         minimalApp.toggleDisabledInput(true);

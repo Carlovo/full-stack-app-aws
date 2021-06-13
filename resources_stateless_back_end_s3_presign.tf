@@ -23,45 +23,6 @@ resource "aws_s3_bucket" "s3_presign" {
   }
 }
 
-# Lambda
-
-module "lambda_function_s3_presign_api" {
-  source = "./modules/python_lambda_function"
-
-  function_name = "${aws_s3_bucket.s3_presign.id}-s3-presign"
-
-  source_code = templatefile("./terraform_templates/back_end/s3_presign_api.py", {
-    bucket_name = aws_s3_bucket.s3_presign.id
-  })
-
-  extra_permission_statements = [{
-    actions   = ["s3:PutObject"]
-    resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
-  }]
-}
-
-module "lambda_function_textract_api" {
-  source = "./modules/python_lambda_function"
-
-  function_name = "${aws_s3_bucket.s3_presign.id}-textract"
-  timeout       = 90
-
-  source_code = templatefile("./terraform_templates/back_end/textract_api.py", {
-    bucket_name = aws_s3_bucket.s3_presign.id
-  })
-
-  extra_permission_statements = [
-    {
-      actions   = ["textract:DetectDocumentText"]
-      resources = ["*"]
-    },
-    {
-      actions   = ["s3:GetObject"]
-      resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
-    }
-  ]
-}
-
 # API Gateway V2
 
 resource "aws_apigatewayv2_api" "s3_presign" {
@@ -77,36 +38,6 @@ resource "aws_apigatewayv2_api" "s3_presign" {
     allow_origins = ["*"]
     max_age       = 900
   }
-}
-
-resource "aws_apigatewayv2_integration" "s3_presign" {
-  api_id           = aws_apigatewayv2_api.s3_presign.id
-  integration_type = "AWS_PROXY"
-
-  integration_method     = "POST"
-  integration_uri        = module.lambda_function_s3_presign_api.function_arn
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_route" "s3_presign" {
-  api_id    = aws_apigatewayv2_api.s3_presign.id
-  route_key = "GET /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.s3_presign.id}"
-}
-
-resource "aws_apigatewayv2_integration" "textract" {
-  api_id           = aws_apigatewayv2_api.s3_presign.id
-  integration_type = "AWS_PROXY"
-
-  integration_method     = "POST"
-  integration_uri        = module.lambda_function_textract_api.function_arn
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_route" "textract" {
-  api_id    = aws_apigatewayv2_api.s3_presign.id
-  route_key = "POST /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.textract.id}"
 }
 
 resource "aws_apigatewayv2_stage" "s3_presign" {
@@ -135,6 +66,53 @@ resource "aws_apigatewayv2_stage" "s3_presign" {
   }
 }
 
+module "api_gateway_v2_lambda_integration_s3_presign" {
+  source = "./modules/api_gateway_v2_lambda_integration"
+
+  api_id            = aws_apigatewayv2_api.s3_presign.id
+  http_method       = "GET"
+  api_execution_arn = aws_apigatewayv2_api.s3_presign.execution_arn
+  api_stage_name    = aws_apigatewayv2_stage.s3_presign.name
+
+  function_name = "${aws_s3_bucket.s3_presign.id}-s3-presign"
+
+  source_code = templatefile("./terraform_templates/back_end/s3_presign_api.py", {
+    bucket_name = aws_s3_bucket.s3_presign.id
+  })
+
+  extra_permission_statements = [{
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
+  }]
+}
+
+module "api_gateway_v2_lambda_integration_textract" {
+  source = "./modules/api_gateway_v2_lambda_integration"
+
+  api_id            = aws_apigatewayv2_api.s3_presign.id
+  http_method       = "POST"
+  api_execution_arn = aws_apigatewayv2_api.s3_presign.execution_arn
+  api_stage_name    = aws_apigatewayv2_stage.s3_presign.name
+
+  function_name = "${aws_s3_bucket.s3_presign.id}-textract"
+  timeout       = 90
+
+  source_code = templatefile("./terraform_templates/back_end/textract_api.py", {
+    bucket_name = aws_s3_bucket.s3_presign.id
+  })
+
+  extra_permission_statements = [
+    {
+      actions   = ["textract:DetectDocumentText"]
+      resources = ["*"]
+    },
+    {
+      actions   = ["s3:GetObject"]
+      resources = ["${aws_s3_bucket.s3_presign.arn}/*"]
+    }
+  ]
+}
+
 resource "aws_apigatewayv2_domain_name" "alias" {
   count = var.alternate_domain_name == "" ? 0 : 1
 
@@ -153,22 +131,4 @@ resource "aws_apigatewayv2_api_mapping" "alias" {
   api_id      = aws_apigatewayv2_api.s3_presign.id
   domain_name = aws_apigatewayv2_domain_name.alias[0].id
   stage       = aws_apigatewayv2_stage.s3_presign.id
-}
-
-# Coupling
-
-resource "aws_lambda_permission" "apigwv2_s3_presign" {
-  statement_id  = "AllowAPIGatewayV2Invoke"
-  action        = "lambda:InvokeFunction"
-  function_name = "${aws_s3_bucket.s3_presign.id}-s3-presign"
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.s3_presign.execution_arn}/${aws_apigatewayv2_stage.s3_presign.name}/GET/*"
-}
-
-resource "aws_lambda_permission" "apigwv2_textract" {
-  statement_id  = "AllowAPIGatewayV2Invoke"
-  action        = "lambda:InvokeFunction"
-  function_name = "${aws_s3_bucket.s3_presign.id}-textract"
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.s3_presign.execution_arn}/${aws_apigatewayv2_stage.s3_presign.name}/POST/*"
 }

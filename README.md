@@ -16,18 +16,19 @@ This app can be deployed using Terraform v0.14.8 with provider.aws v3.33.0 and p
 
 If you don't know Terraform or how to use it, please see [their documentation](https://learn.hashicorp.com/terraform).
 
-### Vanilla (no logging, CloudFront domain name)
+### Vanilla (no API Gateway logging, CloudFront domain name)
 
 Run the regular `terraform init` and `terraform apply` command and everything should deploy fine.
 
-### Enabling logging
+### Enabling API Gateway logging
 
-Run `terraform apply -var='log_api=true'` and Terraform will enable logging on the API request and responses in CloudWatch.
+Run `terraform apply -var='log_api=true'` and Terraform will enable logging on the API Gateway requests and responses in CloudWatch.
 To actually do this, API Gateway needs a role.
 There can only be one such role linked to API Gateway per AWS region, so you can skip the next bit if you already have one configured.
 Otherwise, add `-var='api_gateway_log_role=true'` and Terraform will configure such a role.
 There is no API to remove this coupling in API Gateway, so this stays after a `terraform destroy`, but this should be harmless.
-The logs produced are also configured to stay after destruction by Terraform.
+Lambda is configured to log by default.
+Terraform will destroy all logs produced upon `destroy`.
 
 ### Custom domain name
 

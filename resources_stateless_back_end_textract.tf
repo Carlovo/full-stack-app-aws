@@ -1,6 +1,8 @@
 # S3
 
 resource "aws_s3_bucket" "image_uploads" {
+  force_destroy = true
+
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["POST"]

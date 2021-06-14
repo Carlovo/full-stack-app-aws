@@ -114,7 +114,9 @@ resource "aws_api_gateway_deployment" "crud" {
 resource "aws_api_gateway_stage" "crud" {
   deployment_id = aws_api_gateway_deployment.crud.id
   rest_api_id   = aws_api_gateway_rest_api.crud.id
-  stage_name    = "crud"
+  stage_name    = local.crud_stage_name
+
+  depends_on = [aws_cloudwatch_log_group.crud_api]
 }
 
 resource "aws_api_gateway_method_settings" "crud" {
@@ -123,8 +125,8 @@ resource "aws_api_gateway_method_settings" "crud" {
   method_path = "*/*"
 
   settings {
-    data_trace_enabled = var.log_api ? true : null
-    logging_level      = var.log_api ? "INFO" : "OFF"
+    data_trace_enabled = var.log_apis ? true : false
+    logging_level      = var.log_apis ? "INFO" : "OFF"
   }
 }
 

@@ -16,10 +16,10 @@ variable "tables" {
   description = "List of unique names (set of strings) for which the CRUD app will create a separate table."
 }
 
-variable "log_api" {
+variable "log_apis" {
   type        = bool
   default     = false
-  description = "Log API Gateway requests and reponses. A role to do so must be configured in the AWS region, see api_gateway_log_role."
+  description = "Log API Gateway (V2) requests and reponses. A role to do so must be configured in the AWS region, see api_gateway_log_role."
 }
 
 variable "api_gateway_log_role" {
@@ -39,6 +39,8 @@ locals {
       upload_api = "upload-api.${var.alternate_domain_name}"
     }
   }
+  # Necessary to prevent cyclic dependencies
+  crud_stage_name = "crud"
   # Using the full S3 bucket name would make a too long name for DynamoDB
   unique_name_prefix = "tf-${split("-", aws_s3_bucket.front_end.id)[1]}-"
 }

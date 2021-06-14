@@ -46,7 +46,7 @@ resource "aws_apigatewayv2_stage" "textract" {
   auto_deploy = true
 
   dynamic "access_log_settings" {
-    for_each = var.log_api ? [1] : []
+    for_each = var.log_apis ? [1] : []
 
     content {
       destination_arn = aws_cloudwatch_log_group.textract_api[0].arn

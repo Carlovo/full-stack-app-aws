@@ -17,6 +17,7 @@ resource "aws_s3_bucket_object" "index" {
     "./terraform_templates/front_end/index.html",
     {
       table_query_links = join("</td></tr><tr><td>", local.table_query_links)
+      textract_api_html = var.textract_api ? file("./terraform_templates/front_end/textract_api.html") : "<!-- not available -->"
     }
   )
 }
@@ -31,8 +32,8 @@ resource "aws_s3_bucket_object" "script" {
     "./terraform_templates/front_end/index.js",
     {
       crud_api_url                     = var.alternate_domain_name == "" ? "${aws_api_gateway_stage.crud.invoke_url}/" : "https://${aws_api_gateway_base_path_mapping.alias[0].domain_name}/"
-      s3_presign_api_url               = var.alternate_domain_name == "" ? aws_apigatewayv2_stage.textract.invoke_url : "https://${aws_apigatewayv2_domain_name.alias[0].domain_name}/"
-      image_upload_bucket_regional_url = "https://${aws_s3_bucket.image_uploads.bucket_regional_domain_name}/"
+      textract_api_url                 = var.textract_api ? "https://${module.textract_api[0].invoke_url}/" : "not available"
+      image_upload_bucket_regional_url = var.textract_api ? module.textract_api[0].bucket_regional_domain_name : "not available"
     }
   )
 }

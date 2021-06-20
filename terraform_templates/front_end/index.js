@@ -16,7 +16,7 @@ var tableEntries = [];
 var refreshDict = {};
 // Templated by Terraform
 const crudApiUrl = "${crud_api_url}";
-const S3PresignApiUrl = "${s3_presign_api_url}";
+const textractApiUrl = "${textract_api_url}";
 
 const queryParams = new URLSearchParams(window.location.search);
 const queryTable = queryParams.get("table");
@@ -669,7 +669,7 @@ var minimalApp = new function () {
                 };
             };
 
-            xhttp.open("GET", S3PresignApiUrl);
+            xhttp.open("GET", textractApiUrl);
             xhttp.send();
 
             minimalApp.toggleDisabledInput(true);
@@ -746,7 +746,7 @@ var minimalApp = new function () {
             };
         };
 
-        xhttp.open("POST", S3PresignApiUrl);
+        xhttp.open("POST", textractApiUrl);
         xhttp.send(bodyText);
     };
 

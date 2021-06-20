@@ -28,6 +28,12 @@ variable "api_gateway_log_role" {
   description = "Create and set a role in this AWS region to log requests through API Gateway, careful, there can only be one."
 }
 
+variable "textract_api" {
+  type        = bool
+  default     = false
+  description = "Should a Textract API be deployed?"
+}
+
 locals {
   alternate_domain_names = var.alternate_domain_name == "" ? {} : {
     front_end = {
@@ -35,8 +41,8 @@ locals {
       www  = "www.${var.alternate_domain_name}"
     }
     back_end = {
-      crud_api   = "crud-api.${var.alternate_domain_name}"
-      upload_api = "upload-api.${var.alternate_domain_name}"
+      crud_api     = "crud-api.${var.alternate_domain_name}"
+      textract_api = "textract-api.${var.alternate_domain_name}"
     }
   }
   # Necessary to prevent cyclic dependencies

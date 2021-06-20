@@ -16,7 +16,7 @@ This app can be deployed using Terraform v0.14.8 with provider.aws v3.33.0 and p
 
 If you don't know Terraform or how to use it, please see [their documentation](https://learn.hashicorp.com/terraform).
 
-### Vanilla (no API Gateway logging, CloudFront domain name)
+### Vanilla (no API Gateway logging, no Textract API, CloudFront domain name)
 
 Run the regular `terraform init` and `terraform apply` command and everything should deploy fine.
 
@@ -29,6 +29,12 @@ Otherwise, add `-var='api_gateway_log_role=true'` and Terraform will configure s
 There is no API to remove this coupling in API Gateway, so this stays after a `terraform destroy`, but this should be harmless.
 Lambda is configured to log by default.
 Terraform will destroy all logs produced upon `destroy`.
+
+### Textract API
+
+Do you have the things you would like to list in this app in an image format (or on a paper you can make a picture of)?
+No problem!
+Run `terraform apply` with `-var='textract_api=true'` and all the necessary resources will be deployed that enable the app to upload an image to Amazon Textract and parse the results.
 
 ### Custom domain name
 

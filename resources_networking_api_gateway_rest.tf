@@ -99,7 +99,7 @@ resource "aws_api_gateway_deployment" "crud" {
   # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment
   # Terraform has diffeculties seeing when redeployment should happen, therefore this dirty hack
   triggers = {
-    this_file               = filesha1("./resources_stateless_back_end_crud.tf")
+    this_file               = filesha1("./resources_networking_api_gateway_rest.tf")
     vtl_scan                = filesha1("./terraform_templates/back_end/dynamodb_scan.vtl")
     vtl_batchwriteitem      = filesha1("./terraform_templates/back_end/dynamodb_batchwriteitem.vtl")
     top_module_file         = filesha1("./modules/api_gateway_resource_to_dynamodb/main.tf")

@@ -25,12 +25,37 @@ resource "aws_s3_bucket" "image_uploads" {
   }
 }
 
+# CloudWatch Logs
+
+resource "aws_cloudwatch_log_group" "textract_api" {
+  count = var.log_apis ? 1 : 0
+
+  name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.textract.id}"
+  retention_in_days = 60
+}
+
+# Route53
+
+resource "aws_route53_record" "textract_api_alias" {
+  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
+
+  zone_id = var.alternate_domain_information["route53_zone_id"]
+  name    = aws_apigatewayv2_domain_name.alias[0].domain_name
+  type    = "A"
+
+  alias {
+    evaluate_target_health = false # not supported for API Gateway, but parameter must be present anyway
+    name                   = aws_apigatewayv2_domain_name.alias[0].domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.alias[0].domain_name_configuration[0].hosted_zone_id
+  }
+}
+
 # API Gateway V2
 
 resource "aws_apigatewayv2_api" "textract" {
   name                         = aws_s3_bucket.image_uploads.id
   protocol_type                = "HTTP"
-  disable_execute_api_endpoint = var.alternate_domain_name == "" ? false : true
+  disable_execute_api_endpoint = var.alternate_domain_information["domain_name"] == "" ? false : true
 
   cors_configuration {
     allow_methods = [
@@ -69,7 +94,7 @@ resource "aws_apigatewayv2_stage" "textract" {
 }
 
 module "api_gateway_v2_lambda_integration_s3_presign" {
-  source = "./modules/api_gateway_v2_lambda_integration"
+  source = "../api_gateway_v2_lambda_integration"
 
   api_id            = aws_apigatewayv2_api.textract.id
   http_method       = "GET"
@@ -78,7 +103,7 @@ module "api_gateway_v2_lambda_integration_s3_presign" {
 
   function_name = "${aws_s3_bucket.image_uploads.id}-s3-presign"
 
-  source_code = templatefile("./terraform_templates/back_end/s3_presign_api.py", {
+  source_code = templatefile("${path.module}/../../terraform_templates/back_end/s3_presign_api.py", {
     bucket_name = aws_s3_bucket.image_uploads.id
   })
 
@@ -89,7 +114,7 @@ module "api_gateway_v2_lambda_integration_s3_presign" {
 }
 
 module "api_gateway_v2_lambda_integration_textract" {
-  source = "./modules/api_gateway_v2_lambda_integration"
+  source = "../api_gateway_v2_lambda_integration"
 
   api_id            = aws_apigatewayv2_api.textract.id
   http_method       = "POST"
@@ -99,7 +124,7 @@ module "api_gateway_v2_lambda_integration_textract" {
   function_name = "${aws_s3_bucket.image_uploads.id}-textract"
   timeout       = 90
 
-  source_code = templatefile("./terraform_templates/back_end/textract_api.py", {
+  source_code = templatefile("${path.module}/../../terraform_templates/back_end/textract_api.py", {
     bucket_name = aws_s3_bucket.image_uploads.id
   })
 
@@ -116,19 +141,19 @@ module "api_gateway_v2_lambda_integration_textract" {
 }
 
 resource "aws_apigatewayv2_domain_name" "alias" {
-  count = var.alternate_domain_name == "" ? 0 : 1
+  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
 
-  domain_name = local.alternate_domain_names["back_end"]["upload_api"]
+  domain_name = var.alternate_domain_information["domain_name"]
 
   domain_name_configuration {
-    certificate_arn = module.certificate_and_validation_back_end[0].acm_certificate_arn
+    certificate_arn = var.alternate_domain_information["acm_certificate_arn"]
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
   }
 }
 
 resource "aws_apigatewayv2_api_mapping" "alias" {
-  count = var.alternate_domain_name == "" ? 0 : 1
+  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
 
   api_id      = aws_apigatewayv2_api.textract.id
   domain_name = aws_apigatewayv2_domain_name.alias[0].id

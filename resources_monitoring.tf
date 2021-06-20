@@ -13,10 +13,3 @@ resource "aws_cloudwatch_log_group" "crud_api" {
   name              = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.crud.id}/${local.crud_stage_name}"
   retention_in_days = 60
 }
-
-resource "aws_cloudwatch_log_group" "textract_api" {
-  count = var.log_apis ? 1 : 0
-
-  name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.textract.id}"
-  retention_in_days = 60
-}

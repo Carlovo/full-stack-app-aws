@@ -7,103 +7,31 @@ resource "aws_api_gateway_rest_api" "crud" {
   }
 }
 
-module "api_gateway_resource_to_dynamodb_table" {
+module "dynamodb_table_plus_api_gateway_data_access_layer" {
   for_each = var.tables
 
-  source = "./modules/api_gateway_resource_to_dynamodb"
+  source = "./modules/dynamodb_table_plus_api_gateway_data_access_layer"
 
-  rest_api_id        = aws_api_gateway_rest_api.crud.id
-  parent_id          = aws_api_gateway_rest_api.crud.root_resource_id
-  path_part          = each.key
-  execution_role_arn = module.api_gateway_crud_dynamodb_role.role_arn
-
-  integrations = {
-    GET = {
-      dynamodb_action         = "Scan"
-      request_transformation  = jsonencode({ TableName = aws_dynamodb_table.main[each.key].name })
-      response_transformation = file("./terraform_templates/back_end/dynamodb_scan.vtl")
-    },
-    POST = {
-      dynamodb_action = "BatchWriteItem"
-      request_transformation = templatefile(
-        "./terraform_templates/back_end/dynamodb_batchwriteitem.vtl",
-        {
-          dynamodb_table_name = aws_dynamodb_table.main[each.key].name
-        }
-      )
-    }
-  }
-}
-
-module "api_gateway_resource_to_dynamodb_item" {
-  for_each = var.tables
-
-  source = "./modules/api_gateway_resource_to_dynamodb"
-
-  rest_api_id        = aws_api_gateway_rest_api.crud.id
-  parent_id          = module.api_gateway_resource_to_dynamodb_table[each.key].api_gateway_method_resource_id
-  path_part          = "{item}"
-  execution_role_arn = module.api_gateway_crud_dynamodb_role.role_arn
-
-  integrations = {
-    DELETE = {
-      dynamodb_action = "DeleteItem"
-      request_transformation = jsonencode({
-        TableName = aws_dynamodb_table.main[each.key].name
-        Key = {
-          id = { S = "$input.params('item')" }
-        }
-      })
-    },
-    PATCH = {
-      dynamodb_action = "UpdateItem"
-      request_transformation = jsonencode({
-        TableName = aws_dynamodb_table.main[each.key].name
-        Key = {
-          id = { S = "$input.params('item')" }
-        }
-        UpdateExpression = "SET #n = :new_name, #p = :new_priority, #c = :new_check, #m = :new_modified",
-        ExpressionAttributeNames = {
-          "#n" = "name"
-          "#p" = "priority"
-          "#c" = "check"
-          "#m" = "modified"
-        }
-        ExpressionAttributeValues = {
-          ":new_name" = {
-            S = "$input.path('$.name')"
-          }
-          ":new_priority" = {
-            N = "$input.path('$.priority')"
-          }
-          ":new_check" = {
-            BOOL = "$input.path('$.check')"
-          }
-          ":new_modified" = {
-            N = "$context.requestTimeEpoch"
-          }
-        }
-      })
-    }
-  }
+  unique_name_prefix      = local.unique_name_prefix
+  table                   = each.key
+  api_gateway_rest_api_id = aws_api_gateway_rest_api.crud.id
+  parent_id               = aws_api_gateway_rest_api.crud.root_resource_id
 }
 
 resource "aws_api_gateway_deployment" "crud" {
   rest_api_id = aws_api_gateway_rest_api.crud.id
 
-  depends_on = [
-    module.api_gateway_resource_to_dynamodb_table,
-    module.api_gateway_resource_to_dynamodb_item
-  ]
+  depends_on = [module.dynamodb_table_plus_api_gateway_data_access_layer]
 
   # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment
   # Terraform has diffeculties seeing when redeployment should happen, therefore this dirty hack
   triggers = {
-    this_file               = filesha1("./resources_networking_api_gateway_rest.tf")
-    vtl_scan                = filesha1("./terraform_templates/back_end/dynamodb_scan.vtl")
-    vtl_batchwriteitem      = filesha1("./terraform_templates/back_end/dynamodb_batchwriteitem.vtl")
-    top_module_file         = filesha1("./modules/api_gateway_resource_to_dynamodb/main.tf")
-    integration_module_file = filesha1("./modules/api_gateway_method_integration/main.tf")
+    this_file                 = filesha1("./resources_networking_api_gateway_rest.tf")
+    vtl_scan                  = filesha1("./modules/dynamodb_table_plus_api_gateway_data_access_layer/dynamodb_scan.vtl")
+    vtl_batchwriteitem        = filesha1("./modules/dynamodb_table_plus_api_gateway_data_access_layer/dynamodb_batchwriteitem.vtl")
+    top_module_file           = filesha1("./modules/dynamodb_table_plus_api_gateway_data_access_layer/main.tf")
+    resource_integration_file = filesha1("./modules/api_gateway_resource_to_dynamodb/main.tf")
+    method_integration_file   = filesha1("./modules/api_gateway_method_integration/main.tf")
   }
 
   lifecycle {

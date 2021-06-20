@@ -52,20 +52,3 @@ module "api_gateway_log_cloudwatch_role" {
     resources = ["*"]
   }]
 }
-
-module "api_gateway_crud_dynamodb_role" {
-  source = "./modules/service_role"
-
-  role_name    = "${aws_s3_bucket.front_end.id}-api-gateway-dynamodb"
-  service_name = "apigateway"
-
-  permission_statements = [{
-    actions = [
-      "dynamodb:Scan",
-      "dynamodb:BatchWriteItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:UpdateItem"
-    ]
-    resources = [for table in var.tables : aws_dynamodb_table.main[table].arn]
-  }]
-}

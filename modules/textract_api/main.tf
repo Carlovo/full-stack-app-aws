@@ -103,7 +103,7 @@ module "api_gateway_v2_lambda_integration_s3_presign" {
 
   function_name = "${aws_s3_bucket.image_uploads.id}-s3-presign"
 
-  source_code = templatefile("${path.module}/../../terraform_templates/back_end/s3_presign_api.py", {
+  source_code = templatefile("${path.module}/s3_presign_api.py", {
     bucket_name = aws_s3_bucket.image_uploads.id
   })
 
@@ -124,7 +124,7 @@ module "api_gateway_v2_lambda_integration_textract" {
   function_name = "${aws_s3_bucket.image_uploads.id}-textract"
   timeout       = 90
 
-  source_code = templatefile("${path.module}/../../terraform_templates/back_end/textract_api.py", {
+  source_code = templatefile("${path.module}/textract_api.py", {
     bucket_name = aws_s3_bucket.image_uploads.id
   })
 

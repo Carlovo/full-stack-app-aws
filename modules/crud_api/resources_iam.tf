@@ -1,7 +1,7 @@
 module "api_gateway_log_cloudwatch_role" {
   count = var.api_gateway_log_role ? 1 : 0
 
-  source = "./modules/service_role"
+  source = "../service_role"
 
   # There can only be one
   # per region

@@ -1,5 +1,5 @@
 output "crud_api_invoke_url" {
-  value = var.alternate_domain_name == "" ? aws_api_gateway_stage.crud.invoke_url : aws_route53_record.crud_api_alias[0].name
+  value = module.crud_api.invoke_url
 }
 
 output "textract_api_invoke_url" {

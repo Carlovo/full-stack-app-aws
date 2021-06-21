@@ -1,5 +1,5 @@
 resource "aws_api_gateway_rest_api" "crud" {
-  name                         = aws_s3_bucket.front_end.id
+  name                         = module.front_end.bucket_id
   disable_execute_api_endpoint = var.alternate_domain_name == "" ? false : true
 
   endpoint_configuration {

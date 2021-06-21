@@ -1,14 +1,14 @@
-resource "aws_cloudfront_distribution" "front_end" {
+resource "aws_cloudfront_distribution" "this" {
   origin {
-    domain_name = aws_s3_bucket.front_end.bucket_regional_domain_name
-    origin_id   = aws_s3_bucket.front_end.id
+    domain_name = aws_s3_bucket.this.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.this.id
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.s3_access.cloudfront_access_identity_path
     }
   }
 
-  aliases             = var.alternate_domain_name == "" ? [] : values(local.alternate_domain_names["front_end"])
+  aliases             = local.alternate_domain_names
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = aws_s3_bucket_object.index.key
@@ -16,7 +16,7 @@ resource "aws_cloudfront_distribution" "front_end" {
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = aws_s3_bucket.front_end.id
+    target_origin_id = aws_s3_bucket.this.id
 
     forwarded_values {
       query_string = false
@@ -55,9 +55,21 @@ resource "aws_cloudfront_distribution" "front_end" {
   dynamic "viewer_certificate" {
     for_each = var.alternate_domain_name == "" ? [] : [1]
     content {
-      acm_certificate_arn      = module.certificate_and_validation_front_end[0].acm_certificate_arn
+      acm_certificate_arn      = module.certificate_and_validation[0].acm_certificate_arn
       ssl_support_method       = "sni-only"
       minimum_protocol_version = "TLSv1.2_2019"
     }
   }
+}
+
+module "alias_a_records" {
+  for_each = toset(local.alternate_domain_names)
+
+  source = "../route53_alias_a_records"
+
+  dns_record_name = each.key
+
+  hosted_zone_id       = var.route53_zone_id
+  alias_domain_name    = aws_cloudfront_distribution.this.domain_name
+  alias_hosted_zone_id = aws_cloudfront_distribution.this.hosted_zone_id
 }

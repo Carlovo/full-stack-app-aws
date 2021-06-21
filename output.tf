@@ -7,9 +7,9 @@ output "textract_api_invoke_url" {
 }
 
 output "cloudfront_endpoint" {
-  value = aws_cloudfront_distribution.front_end.domain_name
+  value = module.front_end.cloudfront_endpoint
 }
 
 output "insecure_only_s3_endpoint" {
-  value = var.insecure ? aws_s3_bucket.front_end.bucket_regional_domain_name : "only available when deploying with -var='insecure=true'"
+  value = module.front_end.insecure_only_s3_endpoint
 }

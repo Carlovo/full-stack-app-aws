@@ -27,32 +27,16 @@ resource "aws_s3_bucket" "image_uploads" {
 
 # CloudWatch Logs
 
-resource "aws_cloudwatch_log_group" "textract_api" {
+resource "aws_cloudwatch_log_group" "this" {
   count = var.log_apis ? 1 : 0
 
-  name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.textract.id}"
+  name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.this.id}"
   retention_in_days = 60
-}
-
-# Route53
-
-resource "aws_route53_record" "textract_api_alias" {
-  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
-
-  zone_id = var.alternate_domain_information["route53_zone_id"]
-  name    = aws_apigatewayv2_domain_name.alias[0].domain_name
-  type    = "A"
-
-  alias {
-    evaluate_target_health = false # not supported for API Gateway, but parameter must be present anyway
-    name                   = aws_apigatewayv2_domain_name.alias[0].domain_name_configuration[0].target_domain_name
-    zone_id                = aws_apigatewayv2_domain_name.alias[0].domain_name_configuration[0].hosted_zone_id
-  }
 }
 
 # API Gateway V2
 
-resource "aws_apigatewayv2_api" "textract" {
+resource "aws_apigatewayv2_api" "this" {
   name                         = aws_s3_bucket.image_uploads.id
   protocol_type                = "HTTP"
   disable_execute_api_endpoint = var.alternate_domain_information["domain_name"] == "" ? false : true
@@ -67,8 +51,8 @@ resource "aws_apigatewayv2_api" "textract" {
   }
 }
 
-resource "aws_apigatewayv2_stage" "textract" {
-  api_id      = aws_apigatewayv2_api.textract.id
+resource "aws_apigatewayv2_stage" "this" {
+  api_id      = aws_apigatewayv2_api.this.id
   name        = "$default"
   auto_deploy = true
 
@@ -76,7 +60,7 @@ resource "aws_apigatewayv2_stage" "textract" {
     for_each = var.log_apis ? [1] : []
 
     content {
-      destination_arn = aws_cloudwatch_log_group.textract_api[0].arn
+      destination_arn = aws_cloudwatch_log_group.this[0].arn
       format = jsonencode(
         {
           httpMethod     = "$context.httpMethod"
@@ -96,10 +80,10 @@ resource "aws_apigatewayv2_stage" "textract" {
 module "api_gateway_v2_lambda_integration_s3_presign" {
   source = "../api_gateway_v2_lambda_integration"
 
-  api_id            = aws_apigatewayv2_api.textract.id
+  api_id            = aws_apigatewayv2_api.this.id
   http_method       = "GET"
-  api_execution_arn = aws_apigatewayv2_api.textract.execution_arn
-  api_stage_name    = aws_apigatewayv2_stage.textract.name
+  api_execution_arn = aws_apigatewayv2_api.this.execution_arn
+  api_stage_name    = aws_apigatewayv2_stage.this.name
 
   function_name = "${aws_s3_bucket.image_uploads.id}-s3-presign"
 
@@ -113,13 +97,13 @@ module "api_gateway_v2_lambda_integration_s3_presign" {
   }]
 }
 
-module "api_gateway_v2_lambda_integration_textract" {
+module "api_gateway_v2_lambda_integration" {
   source = "../api_gateway_v2_lambda_integration"
 
-  api_id            = aws_apigatewayv2_api.textract.id
+  api_id            = aws_apigatewayv2_api.this.id
   http_method       = "POST"
-  api_execution_arn = aws_apigatewayv2_api.textract.execution_arn
-  api_stage_name    = aws_apigatewayv2_stage.textract.name
+  api_execution_arn = aws_apigatewayv2_api.this.execution_arn
+  api_stage_name    = aws_apigatewayv2_stage.this.name
 
   function_name = "${aws_s3_bucket.image_uploads.id}-textract"
   timeout       = 90
@@ -140,7 +124,7 @@ module "api_gateway_v2_lambda_integration_textract" {
   ]
 }
 
-resource "aws_apigatewayv2_domain_name" "alias" {
+resource "aws_apigatewayv2_domain_name" "this" {
   count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
 
   domain_name = var.alternate_domain_information["domain_name"]
@@ -152,10 +136,26 @@ resource "aws_apigatewayv2_domain_name" "alias" {
   }
 }
 
-resource "aws_apigatewayv2_api_mapping" "alias" {
+resource "aws_apigatewayv2_api_mapping" "this" {
   count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
 
-  api_id      = aws_apigatewayv2_api.textract.id
-  domain_name = aws_apigatewayv2_domain_name.alias[0].id
-  stage       = aws_apigatewayv2_stage.textract.id
+  api_id      = aws_apigatewayv2_api.this.id
+  domain_name = aws_apigatewayv2_domain_name.this[0].id
+  stage       = aws_apigatewayv2_stage.this.id
+}
+
+# Route53
+
+resource "aws_route53_record" "this" {
+  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
+
+  zone_id = var.alternate_domain_information["route53_zone_id"]
+  name    = aws_apigatewayv2_domain_name.this[0].domain_name
+  type    = "A"
+
+  alias {
+    evaluate_target_health = false # not supported for API Gateway, but parameter must be present anyway
+    name                   = aws_apigatewayv2_domain_name.this[0].domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.this[0].domain_name_configuration[0].hosted_zone_id
+  }
 }

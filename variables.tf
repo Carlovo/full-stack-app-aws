@@ -48,7 +48,7 @@ locals {
   # Necessary to prevent cyclic dependencies
   crud_stage_name = "crud"
   # Using the full S3 bucket name would make a too long name for DynamoDB
-  unique_name_prefix = "tf-${split("-", aws_s3_bucket.front_end.id)[1]}-"
+  unique_name_prefix = "tf-${split("-", module.front_end.bucket_id)[1]}-"
 }
 
 data "aws_region" "current" {}

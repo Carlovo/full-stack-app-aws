@@ -9,29 +9,21 @@ resource "aws_api_gateway_rest_api" "this" {
   }
 }
 
-module "dynamodb_table_plus_api_gateway_data_access_layer" {
-  for_each = var.tables
-
-  source = "../dynamodb_table_plus_api_gateway_data_access_layer"
-
-  unique_name_prefix      = var.unique_name_prefix
-  table                   = each.key
-  api_gateway_rest_api_id = aws_api_gateway_rest_api.this.id
-  parent_id               = aws_api_gateway_rest_api.this.root_resource_id
-}
-
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
-  depends_on = [module.dynamodb_table_plus_api_gateway_data_access_layer]
+  depends_on = [module.dynamodb_api_gateway_data_tier]
 
   # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment
   # Terraform has diffeculties seeing when redeployment should happen, therefore this dirty hack
   triggers = {
     this_file                 = filesha1("${path.module}/resources_networking.tf")
-    vtl_scan                  = filesha1("${path.module}/../dynamodb_table_plus_api_gateway_data_access_layer/dynamodb_scan.vtl")
-    vtl_batchwriteitem        = filesha1("${path.module}/../dynamodb_table_plus_api_gateway_data_access_layer/dynamodb_batchwriteitem.vtl")
-    top_module_file           = filesha1("${path.module}/../dynamodb_table_plus_api_gateway_data_access_layer/main.tf")
+    data_tier_configuration   = filesha1("${path.module}/resources_stateful.tf")
+    vtl_scan                  = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/dynamodb_response_scan.vtl")
+    vtl_batchwriteitem        = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/dynamodb_request_batchwriteitem.vtl")
+    top_module_networking     = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/resources_networking.tf")
+    top_module_security       = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/resources_security.tf")
+    top_module_stateful       = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/resources_stateful.tf")
     resource_integration_file = filesha1("${path.module}/../api_gateway_resource_to_dynamodb/main.tf")
     method_integration_file   = filesha1("${path.module}/../api_gateway_method_integration/main.tf")
   }

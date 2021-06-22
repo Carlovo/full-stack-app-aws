@@ -110,6 +110,7 @@ resource "aws_apigatewayv2_api_mapping" "this" {
 
 # Route53
 
+# API Gateway V2 does not support ipv6 AAAA records
 resource "aws_route53_record" "this" {
   count = var.alternate_domain_name == "" ? 0 : 1
 

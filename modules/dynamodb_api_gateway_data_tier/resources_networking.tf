@@ -1,35 +1,4 @@
-resource "aws_dynamodb_table" "this" {
-  name         = "${var.unique_name_prefix}${var.table}"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "id"
-
-  attribute {
-    name = "id"
-    type = "S"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-}
-
-module "api_gateway_crud_dynamodb_items_role" {
-  source = "../service_role"
-
-  role_name    = "crud-${aws_dynamodb_table.this.name}"
-  service_name = "apigateway"
-
-  permission_statements = [{
-    actions = [
-      "dynamodb:Scan",
-      "dynamodb:BatchWriteItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:UpdateItem"
-    ]
-    resources = [aws_dynamodb_table.this.arn]
-  }]
-}
-
+# both modules taken together might be seen as what used to be called a data access layer
 module "api_gateway_resource_to_dynamodb_table" {
   source = "../api_gateway_resource_to_dynamodb"
 
@@ -42,12 +11,12 @@ module "api_gateway_resource_to_dynamodb_table" {
     GET = {
       dynamodb_action         = "Scan"
       request_transformation  = jsonencode({ TableName = aws_dynamodb_table.this.name })
-      response_transformation = file("${path.module}/dynamodb_scan.vtl")
+      response_transformation = file("${path.module}/dynamodb_response_scan.vtl")
     },
     POST = {
       dynamodb_action = "BatchWriteItem"
       request_transformation = templatefile(
-        "${path.module}/dynamodb_batchwriteitem.vtl",
+        "${path.module}/dynamodb_request_batchwriteitem.vtl",
         {
           dynamodb_table_name = aws_dynamodb_table.this.name
         }

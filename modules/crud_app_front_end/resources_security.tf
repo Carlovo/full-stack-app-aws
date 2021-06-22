@@ -37,5 +37,5 @@ module "certificate_and_validation" {
   providers = { aws = aws.useast1 }
 
   domain_names = local.alternate_domain_names
-  zone_id      = var.route53_zone_id
+  zone_id      = data.aws_route53_zone.selected[0].zone_id
 }

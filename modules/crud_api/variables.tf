@@ -21,18 +21,14 @@ variable "unique_name_prefix" {
   description = "String to prefex resource names with to make them unique."
 }
 
-variable "alternate_domain_information" {
-  type = object({
-    domain_name         = string
-    route53_zone_id     = string
-    acm_certificate_arn = string
-  })
-  description = "Information necessary to deploy the API behind a custom domain name."
+variable "alternate_domain_name" {
+  type        = string
+  default     = ""
+  description = "Domain name of a HostedZone created by the Route53 Registrar, without trailing '.'"
 }
 
 locals {
+  alias_domain_name = "crud-api.${var.alternate_domain_name}"
   # Necessary to prevent cyclic dependencies
   crud_stage_name = "crud"
 }
-
-data "aws_region" "current" {}

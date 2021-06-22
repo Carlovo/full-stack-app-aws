@@ -69,7 +69,7 @@ module "alias_a_records" {
 
   dns_record_name = each.key
 
-  hosted_zone_id       = var.route53_zone_id
+  hosted_zone_id       = data.aws_route53_zone.selected[0].zone_id
   alias_domain_name    = aws_cloudfront_distribution.this.domain_name
   alias_hosted_zone_id = aws_cloudfront_distribution.this.hosted_zone_id
 }

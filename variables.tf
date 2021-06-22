@@ -33,20 +33,3 @@ variable "textract_api" {
   default     = false
   description = "Should a Textract API be deployed?"
 }
-
-locals {
-  alternate_domain_names = var.alternate_domain_name == "" ? {} : {
-    front_end = {
-      apex = var.alternate_domain_name
-      www  = "www.${var.alternate_domain_name}"
-    }
-    back_end = {
-      crud_api     = "crud-api.${var.alternate_domain_name}"
-      textract_api = "textract-api.${var.alternate_domain_name}"
-    }
-  }
-  # Necessary to prevent cyclic dependencies
-  crud_stage_name = "crud"
-  # Using the full S3 bucket name would make a too long name for DynamoDB
-  unique_name_prefix = "tf-${split("-", module.front_end.bucket_id)[1]}-"
-}

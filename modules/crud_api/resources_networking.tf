@@ -2,7 +2,7 @@
 
 resource "aws_api_gateway_rest_api" "this" {
   name                         = var.unique_name_prefix
-  disable_execute_api_endpoint = var.alternate_domain_information["domain_name"] == "" ? false : true
+  disable_execute_api_endpoint = var.alternate_domain_name == "" ? false : true
 
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -61,10 +61,10 @@ resource "aws_api_gateway_method_settings" "this" {
 }
 
 resource "aws_api_gateway_domain_name" "this" {
-  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
+  count = var.alternate_domain_name == "" ? 0 : 1
 
-  regional_certificate_arn = var.alternate_domain_information["acm_certificate_arn"]
-  domain_name              = var.alternate_domain_information["domain_name"]
+  regional_certificate_arn = module.certificate_and_validation[0].acm_certificate_arn
+  domain_name              = local.alias_domain_name
   security_policy          = "TLS_1_2"
 
   endpoint_configuration {
@@ -73,7 +73,7 @@ resource "aws_api_gateway_domain_name" "this" {
 }
 
 resource "aws_api_gateway_base_path_mapping" "this" {
-  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
+  count = var.alternate_domain_name == "" ? 0 : 1
 
   domain_name = aws_api_gateway_domain_name.this[0].domain_name
   api_id      = aws_api_gateway_rest_api.this.id
@@ -84,9 +84,9 @@ resource "aws_api_gateway_base_path_mapping" "this" {
 
 # API Gateway does not support ipv6 AAAA records
 resource "aws_route53_record" "this" {
-  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
+  count = var.alternate_domain_name == "" ? 0 : 1
 
-  zone_id = var.alternate_domain_information["route53_zone_id"]
+  zone_id = data.aws_route53_zone.selected[0].zone_id
   name    = aws_api_gateway_domain_name.this[0].domain_name
   type    = "A"
 

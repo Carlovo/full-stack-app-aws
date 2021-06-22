@@ -1,45 +1,9 @@
-# S3
-
-resource "aws_s3_bucket" "image_uploads" {
-  force_destroy = true
-
-  cors_rule {
-    allowed_headers = ["*"]
-    allowed_methods = ["POST"]
-    allowed_origins = ["*"]
-  }
-
-  lifecycle_rule {
-    id      = "delete-all-1-day"
-    enabled = true
-
-    abort_incomplete_multipart_upload_days = 1
-
-    noncurrent_version_expiration {
-      days = 1
-    }
-
-    expiration {
-      days = 1
-    }
-  }
-}
-
-# CloudWatch Logs
-
-resource "aws_cloudwatch_log_group" "this" {
-  count = var.log_apis ? 1 : 0
-
-  name              = "API-Gateway-V2-Execution-Logs_${aws_apigatewayv2_api.this.id}"
-  retention_in_days = 60
-}
-
 # API Gateway V2
 
 resource "aws_apigatewayv2_api" "this" {
   name                         = aws_s3_bucket.image_uploads.id
   protocol_type                = "HTTP"
-  disable_execute_api_endpoint = var.alternate_domain_information["domain_name"] == "" ? false : true
+  disable_execute_api_endpoint = var.alternate_domain_name == "" ? false : true
 
   cors_configuration {
     allow_methods = [
@@ -125,19 +89,19 @@ module "api_gateway_v2_lambda_integration" {
 }
 
 resource "aws_apigatewayv2_domain_name" "this" {
-  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
+  count = var.alternate_domain_name == "" ? 0 : 1
 
-  domain_name = var.alternate_domain_information["domain_name"]
+  domain_name = local.alias_domain_name
 
   domain_name_configuration {
-    certificate_arn = var.alternate_domain_information["acm_certificate_arn"]
+    certificate_arn = module.certificate_and_validation[0].acm_certificate_arn
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
   }
 }
 
 resource "aws_apigatewayv2_api_mapping" "this" {
-  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
+  count = var.alternate_domain_name == "" ? 0 : 1
 
   api_id      = aws_apigatewayv2_api.this.id
   domain_name = aws_apigatewayv2_domain_name.this[0].id
@@ -147,9 +111,9 @@ resource "aws_apigatewayv2_api_mapping" "this" {
 # Route53
 
 resource "aws_route53_record" "this" {
-  count = var.alternate_domain_information["domain_name"] == "" ? 0 : 1
+  count = var.alternate_domain_name == "" ? 0 : 1
 
-  zone_id = var.alternate_domain_information["route53_zone_id"]
+  zone_id = data.aws_route53_zone.selected[0].zone_id
   name    = aws_apigatewayv2_domain_name.this[0].domain_name
   type    = "A"
 

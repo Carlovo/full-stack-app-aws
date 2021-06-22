@@ -32,7 +32,7 @@ variable "textract_api_url" {
   description = "URL of Textract API, may be omitted if Textract API is not deployed."
 }
 
-variable "image_upload_bucket_regional_url" {
+variable "image_upload_bucket_url" {
   type        = string
   default     = ""
   description = "Regional URL of the bucket for image uploads, may be omitted if Textract API not deployed."

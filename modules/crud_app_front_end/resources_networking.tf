@@ -4,7 +4,7 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = aws_s3_bucket.this.id
 
     s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.s3_access.cloudfront_access_identity_path
+      origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
     }
   }
 

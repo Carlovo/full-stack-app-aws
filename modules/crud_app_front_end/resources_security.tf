@@ -1,13 +1,13 @@
-resource "aws_cloudfront_origin_access_identity" "s3_access" {}
+resource "aws_cloudfront_origin_access_identity" "this" {}
 
-data "aws_iam_policy_document" "cloudfront_s3_policy" {
+data "aws_iam_policy_document" "this" {
   statement {
     actions   = ["s3:ListBucket"]
     resources = [aws_s3_bucket.this.arn]
 
     principals {
       type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.s3_access.iam_arn]
+      identifiers = [aws_cloudfront_origin_access_identity.this.iam_arn]
     }
   }
   statement {
@@ -16,16 +16,16 @@ data "aws_iam_policy_document" "cloudfront_s3_policy" {
 
     principals {
       type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.s3_access.iam_arn]
+      identifiers = [aws_cloudfront_origin_access_identity.this.iam_arn]
     }
   }
 }
 
-resource "aws_s3_bucket_policy" "cloudfront_s3_policy" {
+resource "aws_s3_bucket_policy" "this" {
   count = var.insecure ? 0 : 1
 
   bucket = aws_s3_bucket.this.id
-  policy = data.aws_iam_policy_document.cloudfront_s3_policy.json
+  policy = data.aws_iam_policy_document.this.json
 }
 
 module "certificate_and_validation" {

@@ -1,4 +1,4 @@
-resource "aws_api_gateway_resource" "tables" {
+resource "aws_api_gateway_resource" "this" {
   rest_api_id = var.rest_api_id
   parent_id   = var.parent_id
   path_part   = var.path_part
@@ -10,7 +10,7 @@ module "api_gateway_method_dynamodb_integration" {
   source = "../api_gateway_method_integration"
 
   rest_api_id             = var.rest_api_id
-  api_gateway_resource_id = aws_api_gateway_resource.tables.id
+  api_gateway_resource_id = aws_api_gateway_resource.this.id
   http_method             = each.key
   execution_role_arn      = var.execution_role_arn
   integration_uri         = "arn:aws:apigateway:${data.aws_region.current.name}:dynamodb:action/${each.value.dynamodb_action}"
@@ -27,7 +27,7 @@ module "enable_cors" {
   source = "../api_gateway_method_integration"
 
   rest_api_id             = var.rest_api_id
-  api_gateway_resource_id = aws_api_gateway_resource.tables.id
+  api_gateway_resource_id = aws_api_gateway_resource.this.id
   http_method             = "OPTIONS"
   execution_role_arn      = null
   integration_uri         = null

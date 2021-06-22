@@ -20,12 +20,12 @@ module "textract_api" {
 module "front_end" {
   source = "./modules/crud_app_front_end"
 
-  alternate_domain_name            = var.alternate_domain_name
-  insecure                         = var.insecure
-  tables                           = var.tables
-  crud_api_url                     = module.crud_api.invoke_url
-  textract_api_url                 = var.textract_api == "" ? "" : module.textract_api[0].invoke_url
-  image_upload_bucket_regional_url = var.textract_api == "" ? "" : module.textract_api[0].bucket_regional_domain_name
+  alternate_domain_name   = var.alternate_domain_name
+  insecure                = var.insecure
+  tables                  = var.tables
+  crud_api_url            = module.crud_api.full_invoke_url
+  textract_api_url        = var.textract_api == "" ? "" : module.textract_api[0].full_invoke_url
+  image_upload_bucket_url = var.textract_api == "" ? "" : module.textract_api[0].bucket_full_regional_url
 }
 
 locals {

@@ -1,3 +1,3 @@
-output "invoke_url" {
+output "full_invoke_url" {
   value = var.alternate_domain_name == "" ? "https://${aws_api_gateway_stage.this.invoke_url}/" : "https://${aws_route53_record.this[0].name}/"
 }

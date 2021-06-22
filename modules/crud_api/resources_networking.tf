@@ -9,6 +9,18 @@ resource "aws_api_gateway_rest_api" "this" {
   }
 }
 
+data "archive_file" "module_dependencies" {
+  for_each = toset([
+    "dynamodb_api_gateway_data_tier",
+    "api_gateway_resource_to_dynamodb",
+    "api_gateway_method_integration"
+  ])
+
+  type        = "zip"
+  source_dir  = "${path.module}/../${each.key}/"
+  output_path = "${path.module}/${each.key}.zip"
+}
+
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
@@ -16,17 +28,15 @@ resource "aws_api_gateway_deployment" "this" {
 
   # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment
   # Terraform has diffeculties seeing when redeployment should happen, therefore this dirty hack
-  triggers = {
-    this_file                 = filesha1("${path.module}/resources_networking.tf")
-    data_tier_configuration   = filesha1("${path.module}/resources_stateful.tf")
-    vtl_scan                  = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/dynamodb_response_scan.vtl")
-    vtl_batchwriteitem        = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/dynamodb_request_batchwriteitem.vtl")
-    top_module_networking     = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/resources_networking.tf")
-    top_module_security       = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/resources_security.tf")
-    top_module_stateful       = filesha1("${path.module}/../dynamodb_api_gateway_data_tier/resources_stateful.tf")
-    resource_integration_file = filesha1("${path.module}/../api_gateway_resource_to_dynamodb/main.tf")
-    method_integration_file   = filesha1("${path.module}/../api_gateway_method_integration/main.tf")
-  }
+  triggers = merge(
+    # internal dependencies
+    {
+      this_file               = filesha1("${path.module}/resources_networking.tf")
+      data_tier_configuration = filesha1("${path.module}/resources_stateful.tf")
+    },
+    # module dependencies
+    { for key, value in data.archive_file.module_dependencies : key => value.output_sha }
+  )
 
   lifecycle {
     create_before_destroy = true

@@ -10,6 +10,11 @@ variable "alternate_domain_name" {
   description = "Domain name of a HostedZone created by the Route53 Registrar, without trailing '.'"
 }
 
+variable "app_id" {
+  type        = string
+  description = "Consistent id for resources that need a unique name."
+}
+
 locals {
   alias_domain_name = "textract-api.${var.alternate_domain_name}"
   # Necessary to prevent cyclic dependencies

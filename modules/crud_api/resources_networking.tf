@@ -1,7 +1,7 @@
 # API Gateway (V1)
 
 resource "aws_api_gateway_rest_api" "this" {
-  name                         = var.unique_name_prefix
+  name                         = "${var.app_id}-crud-api"
   disable_execute_api_endpoint = var.alternate_domain_name == "" ? false : true
 
   endpoint_configuration {

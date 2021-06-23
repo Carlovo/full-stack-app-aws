@@ -1,6 +1,6 @@
-variable "unique_name_prefix" {
+variable "app_id" {
   type        = string
-  description = "The string used to make the name of the DynamoDB table and service roles unique."
+  description = "Consistent id for resources that need a unique name."
 }
 
 variable "table" {

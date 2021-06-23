@@ -38,6 +38,11 @@ variable "image_upload_bucket_url" {
   description = "Regional URL of the bucket for image uploads, may be omitted if Textract API not deployed."
 }
 
+variable "app_id" {
+  type        = string
+  description = "Consistent id for resources that need a unique name."
+}
+
 locals {
   alternate_domain_names = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, "www.${var.alternate_domain_name}"]
 }

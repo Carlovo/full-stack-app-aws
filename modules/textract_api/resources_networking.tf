@@ -1,7 +1,7 @@
 # API Gateway V2
 
 resource "aws_apigatewayv2_api" "this" {
-  name                         = aws_s3_bucket.image_uploads.id
+  name                         = "${var.app_id}-textract-api"
   protocol_type                = "HTTP"
   disable_execute_api_endpoint = var.alternate_domain_name == "" ? false : true
 
@@ -49,7 +49,7 @@ module "api_gateway_v2_lambda_integration_s3_presign" {
   api_execution_arn = aws_apigatewayv2_api.this.execution_arn
   api_stage_name    = aws_apigatewayv2_stage.this.name
 
-  function_name = "${aws_s3_bucket.image_uploads.id}-s3-presign"
+  function_name = "${var.app_id}-textract-image-uploads-s3-presign"
 
   source_code = templatefile("${path.module}/s3_presign_api.py", {
     bucket_name = aws_s3_bucket.image_uploads.id
@@ -69,7 +69,7 @@ module "api_gateway_v2_lambda_integration" {
   api_execution_arn = aws_apigatewayv2_api.this.execution_arn
   api_stage_name    = aws_apigatewayv2_stage.this.name
 
-  function_name = "${aws_s3_bucket.image_uploads.id}-textract"
+  function_name = "${var.app_id}-textract-analyze"
   timeout       = 90
 
   source_code = templatefile("${path.module}/textract_api.py", {

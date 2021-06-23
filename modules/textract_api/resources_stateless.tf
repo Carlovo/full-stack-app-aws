@@ -1,4 +1,6 @@
 resource "aws_s3_bucket" "image_uploads" {
+  bucket = "${var.app_id}-textract-image-uploads"
+
   force_destroy = true
 
   cors_rule {

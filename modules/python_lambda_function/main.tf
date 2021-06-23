@@ -1,7 +1,7 @@
 module "this_service_role" {
   source = "../service_role"
 
-  role_name    = "lambda-${var.function_name}"
+  role_name    = var.function_name
   service_name = "lambda"
 
   permission_statements = concat(var.extra_permission_statements,

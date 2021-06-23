@@ -16,9 +16,9 @@ variable "api_gateway_log_role" {
   description = "Create and set a role in this AWS region to log requests through API Gateway, careful, there can only be one."
 }
 
-variable "unique_name_prefix" {
+variable "app_id" {
   type        = string
-  description = "String to prefex resource names with to make them unique."
+  description = "Consistent id for resources that need a unique name."
 }
 
 variable "alternate_domain_name" {

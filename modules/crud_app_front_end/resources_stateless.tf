@@ -1,4 +1,6 @@
 resource "aws_s3_bucket" "this" {
+  bucket = "${var.app_id}-front-end"
+
   # bucket policy is managed in a separate resource to avoid cyclic dependancies
   acl = var.insecure ? "public-read" : "private"
 }

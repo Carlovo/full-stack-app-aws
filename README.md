@@ -12,7 +12,7 @@ Also, I think Terraform gives you a clearer picture of what is going on beneath 
 ## Deployment
 
 You need programmatic access to an AWS account and have Terraform on your machine to deploy this application.
-This app can be deployed using Terraform v0.14.8 with providers aws v3.46.0, archive v2.2.0 and random v3.1.0, but later versions usually work in Terraform as well.
+This app can be deployed using Terraform v1.0.1 with providers aws v3.46.0, archive v2.2.0 and random v3.1.0, but later versions usually work in Terraform as well.
 
 If you don't know Terraform or how to use it, please see [their documentation](https://learn.hashicorp.com/terraform).
 

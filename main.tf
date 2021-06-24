@@ -38,7 +38,7 @@ module "front_end" {
   insecure                = var.insecure
   tables                  = var.tables
   crud_api_url            = module.crud_api.full_invoke_url
-  textract_api_url        = var.textract_api == "" ? "" : module.textract_api[0].full_invoke_url
-  image_upload_bucket_url = var.textract_api == "" ? "" : module.textract_api[0].bucket_full_regional_url
+  textract_api_url        = var.textract_api ? module.textract_api[0].full_invoke_url : ""
+  image_upload_bucket_url = var.textract_api ? module.textract_api[0].bucket_full_regional_url : ""
   app_id                  = local.app_id
 }

@@ -74,7 +74,8 @@ You may want to consider the following things if you want to further develop thi
 If you want to test new code, you would have to wait until CloudFront updates.
 To temporarily overcome this problem, you can set the Terraform variable `-var='insecure=true'` during `apply`.
 This strips all read protection from S3.
-Then you can access your website content via the S3 endpoint immediately (or eventually consistent...) after updating.
+(When redeploying the app with this option Terraform might fail during apply because of some racing condition in S3, but rerunning Terraform apply solves this.)
+Then you can access your website content via the S3 endpoint immediately after updating.
 
 ### Redeploying APIs
 

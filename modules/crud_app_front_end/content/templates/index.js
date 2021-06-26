@@ -511,15 +511,26 @@ var minimalApp = new function () {
 
             if (deleteChecked) {
 
-                var checkedItems = tableEntries.filter(item => item["check"]);
+                var prompt_message = "Delete all checked items?";
             } else {
 
-                var checkedItems = tableEntries.filter(item => !(item["check"]));
+                var prompt_message = "Delete all unchecked items?";
             };
 
-            var checkedItemKeys = checkedItems.map(item => item["id"]);
+            if (confirm(prompt_message)) {
 
-            minimalApp.batchRequest("delete", checkedItemKeys);
+                if (deleteChecked) {
+
+                    var checkedItems = tableEntries.filter(item => item["check"]);
+                } else {
+
+                    var checkedItems = tableEntries.filter(item => !(item["check"]));
+                };
+
+                var checkedItemKeys = checkedItems.map(item => item["id"]);
+
+                minimalApp.batchRequest("delete", checkedItemKeys);
+            };
         } else {
 
             alert("Bulk operations can only be used in online mode");

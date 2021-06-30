@@ -3,3 +3,4 @@
 *.backup
 *.zip
 *.txt
+**/__pycache__/

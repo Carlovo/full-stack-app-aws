@@ -4,3 +4,4 @@
 *.zip
 *.txt
 **/__pycache__/
+**/__test_data__/

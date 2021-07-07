@@ -33,3 +33,10 @@ variable "textract_api" {
   default     = false
   description = "Should a Textract API be deployed?"
 }
+
+variable "apis_rate_limit" {
+  type = number
+  # disable throttling
+  default     = -1
+  description = "The maximum number of requests per second the APIs are allowed to respond to."
+}

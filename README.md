@@ -16,7 +16,7 @@ This app can be deployed using Terraform v1.0.1 with providers aws v3.46.0, arch
 
 If you don't know Terraform or how to use it, please see [their documentation](https://learn.hashicorp.com/terraform).
 
-### Vanilla (no API Gateway logging, no Textract API, CloudFront domain name)
+### Vanilla (no API Gateway logging, no API throttling, no Textract API, CloudFront domain name)
 
 Run the regular `terraform init` and `terraform apply` command and everything should deploy fine.
 
@@ -29,6 +29,11 @@ Otherwise, add `-var='api_gateway_log_role=true'` and Terraform will configure s
 There is no API to remove this coupling in API Gateway, so this stays after a `terraform destroy`, but this should be harmless.
 Lambda is configured to log by default.
 Terraform will destroy all logs produced upon `destroy`.
+
+### API throttling
+
+Run `terraform apply` with `-var='apis_rate_limit=42` to throttle all API Gateway V1 (CRUD) methods and V2 (Textract) routes if more calls are made per second than the number given.
+Note that API Gateway seems to allow slightly more calls than the number given, probably because of eventual consistency in its internal workings.
 
 ### Textract API
 

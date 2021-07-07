@@ -20,6 +20,11 @@ resource "aws_apigatewayv2_stage" "this" {
   name        = "$default"
   auto_deploy = true
 
+  default_route_settings {
+    throttling_burst_limit = var.api_rate_limit
+    throttling_rate_limit  = var.api_rate_limit
+  }
+
   dynamic "access_log_settings" {
     for_each = var.log_apis ? [1] : []
 

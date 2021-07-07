@@ -27,6 +27,13 @@ variable "alternate_domain_name" {
   description = "Domain name of a HostedZone created by the Route53 Registrar, without trailing '.'"
 }
 
+variable "api_rate_limit" {
+  type = number
+  # disable throttling
+  default     = -1
+  description = "The maximum number of requests per second the API is allowed to respond to."
+}
+
 locals {
   alias_domain_name = "crud-api.${var.alternate_domain_name}"
   # Necessary to prevent cyclic dependencies

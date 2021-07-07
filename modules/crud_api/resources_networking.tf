@@ -57,8 +57,10 @@ resource "aws_api_gateway_method_settings" "this" {
   method_path = "*/*"
 
   settings {
-    data_trace_enabled = var.log_apis ? true : false
-    logging_level      = var.log_apis ? "INFO" : "OFF"
+    throttling_burst_limit = var.api_rate_limit
+    throttling_rate_limit  = var.api_rate_limit
+    data_trace_enabled     = var.log_apis ? true : false
+    logging_level          = var.log_apis ? "INFO" : "OFF"
   }
 }
 

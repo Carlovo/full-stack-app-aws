@@ -15,6 +15,13 @@ variable "app_id" {
   description = "Consistent id for resources that need a unique name."
 }
 
+variable "api_rate_limit" {
+  type = number
+  # once enabled, throttling can't be disabled on api gateway v2, so just put something very high here
+  default     = 5000
+  description = "The maximum number of requests per second the API is allowed to respond to."
+}
+
 locals {
   alias_domain_name = "textract-api.${var.alternate_domain_name}"
   # Necessary to prevent cyclic dependencies

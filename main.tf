@@ -19,6 +19,7 @@ module "crud_api" {
   log_apis              = var.log_apis
   api_gateway_log_role  = var.api_gateway_log_role
   app_id                = local.app_id
+  api_rate_limit        = var.apis_rate_limit
 }
 
 module "textract_api" {
@@ -29,6 +30,8 @@ module "textract_api" {
   alternate_domain_name = var.alternate_domain_name
   log_apis              = var.log_apis
   app_id                = local.app_id
+  # once enabled, throttling can't be disabled on api gateway v2, so just put something very high here
+  api_rate_limit = var.apis_rate_limit == -1 ? 5000 : var.apis_rate_limit
 }
 
 module "front_end" {

@@ -39,3 +39,9 @@ variable "extra_response_parameters" {
   default     = {}
   description = "The response parameters that should be present next to 'Access-Control-Allow-Origin'."
 }
+
+variable "enforce_api_key" {
+  type        = bool
+  default     = false
+  description = "Enforce the usage of a key in the header of all requests to this API."
+}

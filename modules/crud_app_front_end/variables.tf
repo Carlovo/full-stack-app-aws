@@ -43,6 +43,12 @@ variable "app_id" {
   description = "Consistent id for resources that need a unique name."
 }
 
+variable "crud_api_key" {
+  type        = string
+  default     = ""
+  description = "The API key needed to access the CRUD API."
+}
+
 locals {
   alternate_domain_names = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, "www.${var.alternate_domain_name}"]
 }

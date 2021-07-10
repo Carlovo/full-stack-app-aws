@@ -40,3 +40,10 @@ variable "apis_rate_limit" {
   default     = -1
   description = "The maximum number of requests per second the APIs are allowed to respond to."
 }
+
+variable "crud_api_daily_usage_quota" {
+  type = number
+  # no quote
+  default     = 0
+  description = "The maximum number of requests per day the CRUD API is allowed to respond to, makes API key usage compulsory."
+}

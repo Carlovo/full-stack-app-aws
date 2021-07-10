@@ -64,6 +64,36 @@ resource "aws_api_gateway_method_settings" "this" {
   }
 }
 
+resource "aws_api_gateway_api_key" "this" {
+  count = var.daily_usage_quota > 0 ? 1 : 0
+
+  name = "${var.app_id}-crud-api"
+}
+
+resource "aws_api_gateway_usage_plan" "this" {
+  count = var.daily_usage_quota > 0 ? 1 : 0
+
+  name = "${var.app_id}-crud-api"
+
+  api_stages {
+    api_id = aws_api_gateway_rest_api.this.id
+    stage  = aws_api_gateway_stage.this.stage_name
+  }
+
+  quota_settings {
+    limit  = var.daily_usage_quota
+    period = "DAY"
+  }
+}
+
+resource "aws_api_gateway_usage_plan_key" "this" {
+  count = var.daily_usage_quota > 0 ? 1 : 0
+
+  key_id        = aws_api_gateway_api_key.this[0].id
+  key_type      = "API_KEY"
+  usage_plan_id = aws_api_gateway_usage_plan.this[0].id
+}
+
 resource "aws_api_gateway_domain_name" "this" {
   count = var.alternate_domain_name == "" ? 0 : 1
 

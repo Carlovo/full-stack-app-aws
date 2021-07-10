@@ -6,6 +6,7 @@ module "api_gateway_resource_to_dynamodb_table" {
   parent_id          = var.parent_id
   path_part          = var.table
   execution_role_arn = module.api_gateway_crud_dynamodb_items_role.role_arn
+  enforce_api_key    = var.enforce_api_key
 
   integrations = {
     GET = {
@@ -32,6 +33,7 @@ module "api_gateway_resource_to_dynamodb_item" {
   parent_id          = module.api_gateway_resource_to_dynamodb_table.api_gateway_method_resource_id
   path_part          = "{item}"
   execution_role_arn = module.api_gateway_crud_dynamodb_items_role.role_arn
+  enforce_api_key    = var.enforce_api_key
 
   integrations = {
     DELETE = {

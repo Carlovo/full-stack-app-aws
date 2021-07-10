@@ -34,6 +34,13 @@ variable "api_rate_limit" {
   description = "The maximum number of requests per second the API is allowed to respond to."
 }
 
+variable "daily_usage_quota" {
+  type = number
+  # no quote
+  default     = 0
+  description = "The maximum number of requests per day the CRUD API is allowed to respond to, makes API key usage compulsory."
+}
+
 locals {
   alias_domain_name = "crud-api.${var.alternate_domain_name}"
   # Necessary to prevent cyclic dependencies

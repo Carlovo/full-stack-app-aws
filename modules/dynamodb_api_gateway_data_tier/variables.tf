@@ -17,3 +17,9 @@ variable "parent_id" {
   type        = string
   description = "ID of the resource (path) to which this integration will be appended."
 }
+
+variable "enforce_api_key" {
+  type        = bool
+  default     = false
+  description = "Enforce the usage of a key in the header of all requests to this API."
+}

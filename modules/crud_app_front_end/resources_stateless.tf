@@ -30,6 +30,7 @@ resource "aws_s3_bucket_object" "script" {
     "${path.module}/content/templates/index.js",
     {
       crud_api_url            = var.crud_api_url
+      crud_api_key            = var.crud_api_key
       textract_api_url        = var.textract_api_url == "" ? "not available" : var.textract_api_url
       image_upload_bucket_url = var.textract_api_url == "" ? "not available" : var.image_upload_bucket_url
     }

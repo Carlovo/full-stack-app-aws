@@ -1,8 +1,9 @@
 resource "aws_api_gateway_method" "this" {
-  rest_api_id   = var.rest_api_id
-  resource_id   = var.api_gateway_resource_id
-  http_method   = var.http_method
-  authorization = "NONE"
+  rest_api_id      = var.rest_api_id
+  resource_id      = var.api_gateway_resource_id
+  http_method      = var.http_method
+  api_key_required = var.enforce_api_key
+  authorization    = "NONE"
 }
 
 locals {

@@ -16,6 +16,7 @@ module "api_gateway_method_dynamodb_integration" {
   integration_uri         = "arn:aws:apigateway:${data.aws_region.current.name}:dynamodb:action/${each.value.dynamodb_action}"
   request_transformation  = each.value.request_transformation
   response_transformation = lookup(each.value, "response_transformation", null)
+  enforce_api_key         = var.enforce_api_key
 }
 
 locals {

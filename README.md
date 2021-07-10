@@ -16,11 +16,16 @@ This app can be deployed using Terraform v1.0.1 with providers aws v3.46.0, arch
 
 If you don't know Terraform or how to use it, please see [their documentation](https://learn.hashicorp.com/terraform).
 
-### Vanilla (no API Gateway logging, no API throttling, no Textract API, CloudFront domain name)
+### Vanilla
 
 Run the regular `terraform init` and `terraform apply` command and everything should deploy fine.
 
-### Enabling API Gateway logging
+### Features
+
+You can deploy the app with the following features by using Terraform vars.
+It should be possible to deploy any combination of them.
+
+#### Enabling API Gateway logging
 
 Run `terraform apply -var='log_api=true'` and Terraform will enable logging on the API Gateway requests and responses in CloudWatch.
 To actually do this, API Gateway needs a role.
@@ -30,18 +35,22 @@ There is no API to remove this coupling in API Gateway, so this stays after a `t
 Lambda is configured to log by default.
 Terraform will destroy all logs produced upon `destroy`.
 
-### API throttling
+#### API throttling / usage quota setting
 
-Run `terraform apply` with `-var='apis_rate_limit=42` to throttle all API Gateway V1 (CRUD) methods and V2 (Textract) routes if more calls are made per second than the number given.
+Run `terraform apply` with `-var='apis_rate_limit=42'` to throttle all API Gateway V1 (CRUD) methods and V2 (Textract) routes if more calls are made per second than the number given.
 Note that API Gateway seems to allow slightly more calls than the number given, probably because of eventual consistency in its internal workings.
 
-### Textract API
+You may want to further limit the usage of your API over a longer period of time.
+Run `terraform apply` with `-var='crud_api_daily_usage_quota=9001'` to throttle all API Gateway V1 (CRUD) methods if more calls are made per day than the number given.
+Note that the `OPTIONS` methods are exempt from this behavior, because a browser preflight request cannot use an API key.
+
+#### Textract API
 
 Do you have the things you would like to list in this app in an image format (or on a paper you can make a picture of)?
 No problem!
 Run `terraform apply` with `-var='textract_api=true'` and all the necessary resources will be deployed that enable the app to upload an image to Amazon Textract and parse the results.
 
-### Custom domain name
+#### Custom domain name
 
 Using this code, you can put a custom domain name from Route53 in front of your website/app as well.
 Terraform can not register a domain name in Route53, so that is an extra manual prerequisite.
@@ -50,11 +59,12 @@ You can create all the required connections between CloudFront and Route53 by th
 
 Run the regular `terraform init` as normal.
 Run `terraform apply -var='alternate_domain_name=example.com'` and Terraform will try to connect `example.com` and `www.example.com` to your CloudFront distribution.
+Terraform will also try to connect `https://crud-api.cvoad.nl/` and `https://textract-api.cvoad.nl/` to the respective APIs.
 The `alternate_domain_name` has to be an apex domain name.
 
 > Note: most AWS resources deployed with this code typically cost no money under bare usage, but this is not the case for custom domain names and other resources in Route53.
 
-### Connect to multiple tables
+#### Connect to multiple tables
 
 Need to keep a shopping list next to your to-do list?
 Well that and any other more tables can be deployed at the same time with this code.
@@ -65,8 +75,10 @@ The names in the list are used to generate names of AWS resources, so names must
 
 ### Terraform output
 
-Terraform will output the website and API endpoint of your app if deployment was successful.
+Terraform will output the endpoints of the website and API(s) of your app if deployment was successful.
 (When using a custom domain name, the CloudFront website endpoint is still available and will be outputted as normal.)
+The key to the CRUD API (API usage quota only) is masked by Terraform, because it is sensitive.
+It is still added to the output to remind you it is available and to make it more easy to find it in the state file.
 
 The (insecure) S3 endpoint of your website bucket will also be outputted, but this is only useful/available when you set the insecure variable to `true` for faster testing.
 

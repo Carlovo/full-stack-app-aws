@@ -16,6 +16,7 @@ var tableEntries = [];
 var refreshDict = {};
 // Templated by Terraform
 const crudApiUrl = "${crud_api_url}";
+const crudApiKey = "${crud_api_key}";
 const textractApiUrl = "${textract_api_url}";
 
 const queryParams = new URLSearchParams(window.location.search);
@@ -616,7 +617,7 @@ var minimalApp = new function () {
         };
 
         xhttp.open("GET", crudApiUrl + queryTable);
-
+        xhttp.setRequestHeader("x-api-key", crudApiKey);
         xhttp.send();
 
         minimalApp.toggleDisabledInput(true);
@@ -651,6 +652,7 @@ var minimalApp = new function () {
 
         xhttp.open(method, crudApiUrl + queryTable + "/" + urlAppendix);
         xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.setRequestHeader("x-api-key", crudApiKey);
         xhttp.send(bodyText);
 
         minimalApp.toggleDisabledInput(true);

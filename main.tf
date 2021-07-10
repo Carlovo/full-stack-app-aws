@@ -20,6 +20,7 @@ module "crud_api" {
   api_gateway_log_role  = var.api_gateway_log_role
   app_id                = local.app_id
   api_rate_limit        = var.apis_rate_limit
+  daily_usage_quota     = var.crud_api_daily_usage_quota
 }
 
 module "textract_api" {
@@ -44,4 +45,5 @@ module "front_end" {
   textract_api_url        = var.textract_api ? module.textract_api[0].full_invoke_url : ""
   image_upload_bucket_url = var.textract_api ? module.textract_api[0].bucket_full_regional_url : ""
   app_id                  = local.app_id
+  crud_api_key            = var.crud_api_daily_usage_quota > 0 ? module.crud_api.usage_key : ""
 }

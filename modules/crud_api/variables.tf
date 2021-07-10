@@ -45,4 +45,6 @@ locals {
   alias_domain_name = "crud-api.${var.alternate_domain_name}"
   # Necessary to prevent cyclic dependencies
   crud_stage_name = "crud"
+  # API Gateway nor Terraform knows a redeployment is required when these parameters change
+  input_sha = sha1("${join("", var.tables)}${var.log_apis}${var.api_gateway_log_role}${var.app_id}${var.alternate_domain_name}${var.api_rate_limit}${var.daily_usage_quota}")
 }

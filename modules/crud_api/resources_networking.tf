@@ -31,6 +31,7 @@ resource "aws_api_gateway_deployment" "this" {
   triggers = merge(
     # internal dependencies
     {
+      input_sha               = local.input_sha
       this_file               = filesha1("${path.module}/resources_networking.tf")
       data_tier_configuration = filesha1("${path.module}/resources_stateful.tf")
     },

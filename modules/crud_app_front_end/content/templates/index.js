@@ -126,6 +126,14 @@ var minimalApp = new function () {
         };
     };
 
+    this.checkSubmit = function (event, callbackFunction, parameters = null) {
+
+        // Press enter => submit
+        if (event && event.keyCode == 13) {
+            callbackFunction.call(this, parameters);
+        };
+    };
+
     this.appendCreateRow = function () {
 
         var tr = mainTable.insertRow(-1);
@@ -157,8 +165,12 @@ var minimalApp = new function () {
         if (cbOptionsCheck.checked) {
 
             var checkCell = tr.insertCell(-1);
+
+            var cbCheck = document.createElement("input");
             checkCell.setAttribute("class", "check");
-            checkCell.setAttribute("id", "Check-" + tableEntries.length);
+            cbCheck.setAttribute("type", "checkbox");
+            cbCheck.setAttribute("id", "Check-" + tableEntries.length);
+            checkCell.appendChild(cbCheck);
         };
 
         // these are actual content
@@ -184,8 +196,11 @@ var minimalApp = new function () {
         nameTextBox.setAttribute("type", "text");
         nameTextBox.setAttribute("value", "");
         nameTextBox.setAttribute("style", "touch-action: none");
+        nameTextBox.setAttribute("onKeyPress", "minimalApp.checkSubmit(event, minimalApp.createItem)");
 
         nameCell.appendChild(nameTextBox);
+
+        nameTextBox.focus({ preventScroll: true });
 
         var createCell = tr.insertCell(-1);
 
@@ -364,7 +379,17 @@ var minimalApp = new function () {
 
         if (valid) {
 
-            itemDict["check"] = false;
+            var cbOptionsOnline = document.getElementById("Options-Checkboxes");
+
+            if (cbOptionsOnline.checked) {
+
+                var cbCheck = document.getElementById("Check-" + tableEntries.length);
+
+                itemDict["check"] = cbCheck.checked;
+            } else {
+
+                itemDict["check"] = false;
+            }
 
             var cbOptionsOnline = document.getElementById("Options-Online");
 
@@ -787,8 +812,11 @@ var minimalApp = new function () {
         nameTextBox.setAttribute("type", "text");
         nameTextBox.setAttribute("value", tableEntries[entryNumber]["name"]);
         nameTextBox.setAttribute("style", "touch-action: none");
+        nameTextBox.setAttribute("onKeyPress", "minimalApp.checkSubmit(event, minimalApp.updateItemNameAndPriority, " + entryNumber + ")");
         nameCell.innerText = "";
         nameCell.appendChild(nameTextBox);
+
+        nameTextBox.focus({ preventScroll: true });
 
         minimalApp.toggleEditItemButtons(entryNumber, true);
     };

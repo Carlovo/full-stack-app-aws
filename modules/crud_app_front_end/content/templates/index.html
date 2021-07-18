@@ -224,34 +224,10 @@
             </table>
             <input type="button" value="Apply sort" onclick="minimalApp.buildMainTable()">
         </details>
-        <details id="bulkDetails" style="display: none;">
+        <details id="bulkSimpleDetails" style="display: none;">
             <summary style="margin: 24px 0px;">
-                Bulk Operations
+                Simple Bulk Operations
             </summary>
-            <table id="bulkTable">
-                <tbody>
-                    <tr>
-                        <td colspan="3">Multiline input</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input id="Check-Bulk-Multiline" type="checkbox">
-                        </td>
-                        <td>
-                            <input id="Priority-Bulk-Multiline" type="number" value=0 style="width: 40px;">
-                        </td>
-                        <td>
-                            <textarea id="Name-Bulk-Multiline" rows="4"
-                                cols="40">input&#13;&#10;multiline&#13;&#10;text&#13;&#10;here</textarea>
-                        </td>
-                    <tr>
-                        <td colspan="3">
-                            <input type="button" value="Submit" onclick="minimalApp.inputBulkMultiline()">
-                        </td>
-                    </tr>
-                    </tr>
-                </tbody>
-            </table>
             <div>
                 <p>Bulk delete</p>
                 <input type="button" value="Delete all checked items"
@@ -264,6 +240,51 @@
                 <input type="button" value="Invert check for all items" onclick="minimalApp.inputBulkInvertCheck()"><br>
                 <input type="button" value="Uncheck all checked items" onclick="minimalApp.inputBulkInvertCheck(1)"><br>
                 <input type="button" value="Check all uncheck items" onclick="minimalApp.inputBulkInvertCheck(-1)">
+            </div>
+        </details>
+        <details id="bulkMultilineDetails" style="display: none;">
+            <summary style="margin: 24px 0px;">
+                Multiline Input
+            </summary>
+            <table id="bulkMultilineTable">
+                <thead>
+                    <th colspan="2" style="text-align: center;">General Options</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            Check
+                        </td>
+                        <td>
+                            <input id="Check-Bulk-Multiline" type="checkbox">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Priority
+                        </td>
+                        <td>
+                            <input id="Priority-Bulk-Multiline" type="number" value=0 style="width: 40px;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Increment priority
+                        </td>
+                        <td>
+                            <input id="Increment-Bulk-Multiline" type="checkbox" checked="checked">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">(Empty lines will be skipped.)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div>
+                <p>Input Text</p>
+                <textarea id="Name-Bulk-Multiline" rows="4"
+                    cols="40">input&#13;&#10;multiline&#13;&#10;text&#13;&#10;here</textarea>
+                <input type="button" value="Submit" onclick="minimalApp.inputBulkMultiline()">
             </div>
             <!-- Templated by Terraform -->
             ${textract_api_html}

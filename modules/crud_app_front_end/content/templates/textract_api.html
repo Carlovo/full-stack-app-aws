@@ -1,5 +1,25 @@
 <div>
-  <p>JPEG image analysis</p>
+  <p>Input JPEG Image With Text</p>
+  <table>
+    <tbody>
+      <tr>
+        <td>
+          Redact in text box
+        </td>
+        <td>
+          <input id="Redact-Bulk-Multiline" type="checkbox" checked="checked">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Invert word order
+        </td>
+        <td>
+          <input id="Invert-Bulk-Multiline" type="checkbox" checked="checked">
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <input type="file" id="Bulk-Image-Multiline"><br>
   <button type="button" onclick="minimalApp.xhttpGetUploadURL()">Upload</button>
 </div>

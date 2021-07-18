@@ -293,6 +293,22 @@ var minimalApp = new function () {
 
         tableEntries.forEach((tableEntry, entryNumber) => minimalApp.appendItemRow(tableEntry, entryNumber));
 
+        var nbPriority = document.getElementById("Priority-Bulk-Multiline");
+
+        var entryPriorities = tableEntries.map(item => item["priority"]);
+
+        if (entryPriorities.length > 0) {
+
+            var maxPriority = entryPriorities.reduce(function (a, b) {
+                return Math.max(a, b);
+            });
+
+            nbPriority.value = Math.floor(maxPriority + 1);
+        } else {
+
+            nbPriority.value = 0;
+        };
+
         minimalApp.toggleDisabledInput(false);
 
         minimalApp.scaleContent();
@@ -479,19 +495,53 @@ var minimalApp = new function () {
         };
     };
 
-    this.inputBulkImage = function (nameList) {
+    this.parseBulkInput = function (nameList) {
+
+        var nbPriority = document.getElementById("Priority-Bulk-Multiline");
+        var cbCheck = document.getElementById("Check-Bulk-Multiline");
 
         var items = [];
+        var priority = Number(nbPriority.value);
+
+        var cbIncrement = document.getElementById("Increment-Bulk-Multiline");
 
         nameList.forEach(function (name) {
             items.push({
                 "name": name,
-                "priority": 0,
-                "check": false
+                "priority": priority,
+                "check": cbCheck.checked
             });
+
+            if (cbIncrement.checked) {
+
+                priority += 0.01;
+            };
         });
 
         minimalApp.batchRequest("put", items);
+    };
+
+    this.inputBulkImage = function (nameList) {
+
+        var cbInvert = document.getElementById("Invert-Bulk-Multiline");
+
+        if (cbInvert.checked) {
+
+            nameList = nameList.map(name => name.split(' ').reverse().join(' '));
+        };
+
+        var cbRedact = document.getElementById("Redact-Bulk-Multiline");
+
+        if (cbRedact.checked) {
+
+            var taName = document.getElementById("Name-Bulk-Multiline");
+            taName.value = nameList.join("\n");
+
+            minimalApp.toggleDisabledInput(false);
+        } else {
+
+            minimalApp.parseBulkInput(nameList);
+        };
     };
 
     this.inputBulkMultiline = function () {
@@ -500,28 +550,18 @@ var minimalApp = new function () {
 
         if (cbOptionsOnline.checked) {
 
-            var taName = document.getElementById("Name-Bulk-Multiline");
             var nbPriority = document.getElementById("Priority-Bulk-Multiline");
+            var taName = document.getElementById("Name-Bulk-Multiline");
 
-            if (taName.value == "" || nbPriority.value == "") {
+            var nameList = taName.value.split("\n");
+            var nameList = nameList.filter(name => name.trim());
 
-                alert("bulk input fields may not be empty");
+            if (!nameList.length || nbPriority.value == "") {
+
+                alert("Bulk 'Input text' and 'Priority' fields may not be empty");
             } else {
 
-                var cbCheck = document.getElementById("Check-Bulk-Multiline");
-                var names = taName.value.split("\n");
-                var items = [];
-                var priority = Number(nbPriority.value);
-
-                names.forEach(function (name) {
-                    items.push({
-                        "name": name,
-                        "priority": priority,
-                        "check": cbCheck.checked
-                    });
-                });
-
-                minimalApp.batchRequest("put", items);
+                minimalApp.parseBulkInput(nameList);
             };
         } else {
 
@@ -613,8 +653,11 @@ var minimalApp = new function () {
         var sortDetails = document.getElementById("sortDetails");
         sortDetails.setAttribute("style", "display:none");
 
-        var bulkDetails = document.getElementById("bulkDetails");
-        bulkDetails.setAttribute("style", "display:none");
+        var bulkSimpleDetails = document.getElementById("bulkSimpleDetails");
+        bulkSimpleDetails.setAttribute("style", "display:none");
+
+        var bulkMultilineDetails = document.getElementById("bulkMultilineDetails");
+        bulkMultilineDetails.setAttribute("style", "display:none");
 
         mainTable.innerHTML = mainTableDefaultHTML;
 
@@ -685,35 +728,43 @@ var minimalApp = new function () {
 
     this.xhttpGetUploadURL = function () {
 
-        var files = document.getElementById("Bulk-Image-Multiline").files;
+        var nbPriority = document.getElementById("Priority-Bulk-Multiline");
 
-        if (files.length == 1) {
+        if (nbPriority.value == "") {
 
-            var xhttp = new XMLHttpRequest();
-
-            xhttp.onreadystatechange = function () {
-
-                if (this.readyState == 4) {
-
-                    console.log(this.responseText);
-
-                    if (this.status == 200) {
-
-                        minimalApp.xhttpUploadFile(this.responseText);
-                    } else {
-
-                        minimalApp.alertInvalidRequest();
-                    };
-                };
-            };
-
-            xhttp.open("GET", textractApiUrl);
-            xhttp.send();
-
-            minimalApp.toggleDisabledInput(true);
+            alert("Bulk 'Priority' field may not be empty");
         } else {
 
-            alert("Please select one file to upload.");
+            var files = document.getElementById("Bulk-Image-Multiline").files;
+
+            if (files.length == 1) {
+
+                var xhttp = new XMLHttpRequest();
+
+                xhttp.onreadystatechange = function () {
+
+                    if (this.readyState == 4) {
+
+                        console.log(this.responseText);
+
+                        if (this.status == 200) {
+
+                            minimalApp.xhttpUploadFile(this.responseText);
+                        } else {
+
+                            minimalApp.alertInvalidRequest();
+                        };
+                    };
+                };
+
+                xhttp.open("GET", textractApiUrl);
+                xhttp.send();
+
+                minimalApp.toggleDisabledInput(true);
+            } else {
+
+                alert("Please select one file to upload.");
+            };
         };
     };
 
@@ -949,8 +1000,11 @@ var minimalApp = new function () {
             var sortDetails = document.getElementById("sortDetails");
             sortDetails.setAttribute("style", "display:block");
 
-            var bulkDetails = document.getElementById("bulkDetails");
-            bulkDetails.setAttribute("style", "display:block");
+            var bulkSimpleDetails = document.getElementById("bulkSimpleDetails");
+            bulkSimpleDetails.setAttribute("style", "display:block");
+
+            var bulkMultilineDetails = document.getElementById("bulkMultilineDetails");
+            bulkMultilineDetails.setAttribute("style", "display:block");
         } else {
 
             minimalApp.scaleContent();

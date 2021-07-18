@@ -1,6 +1,14 @@
 resource "aws_s3_bucket" "this" {
   bucket = "${var.app_id}-front-end"
 
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm     = "AES256"
+      }
+    }
+  }
+
   # bucket policy is managed in a separate resource to avoid cyclic dependancies
   acl = var.insecure ? "public-read" : "private"
 }

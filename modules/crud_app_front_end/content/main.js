@@ -1,5 +1,7 @@
 "use strict";
 
+import { crudApiUrl, crudApiKey, textractApiUrl, imageUploadBucketUrl } from './api_client_library.js';
+
 const containerDiv = document.getElementById("container");
 const mainTable = document.getElementById("mainTable");
 const mainTableDefaultHTML = mainTable.innerHTML;
@@ -14,10 +16,6 @@ const sortOptions = [
 
 var tableEntries = [];
 var refreshDict = {};
-// Templated by Terraform
-const crudApiUrl = "${crud_api_url}";
-const crudApiKey = "${crud_api_key}";
-const textractApiUrl = "${textract_api_url}";
 
 const queryParams = new URLSearchParams(window.location.search);
 const queryTable = queryParams.get("table");
@@ -801,10 +799,9 @@ var minimalApp = new function () {
 
         console.log(formData);
 
-        // Templated by Terraform
         // The presigned response also contains the bucket url,
         // but it can take up to 24 hours before the global url works.
-        xhttp.open("POST", "${image_upload_bucket_url}");
+        xhttp.open("POST", imageUploadBucketUrl);
         xhttp.send(formData);
 
         minimalApp.toggleDisabledInput(true);
@@ -1011,5 +1008,7 @@ var minimalApp = new function () {
         };
     };
 };
+
+window.minimalApp = minimalApp;
 
 minimalApp.renderPage();

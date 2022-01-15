@@ -28,14 +28,14 @@ resource "aws_s3_bucket_object" "index" {
   )
 }
 
-resource "aws_s3_bucket_object" "script" {
+resource "aws_s3_bucket_object" "api_client_library" {
   bucket       = aws_s3_bucket.this.id
-  key          = "index.js"
+  key          = "api_client_library.js"
   content_type = "text/javascript"
   acl          = var.insecure ? "public-read" : "private"
 
   content = templatefile(
-    "${path.module}/content/templates/index.js",
+    "${path.module}/content/templates/api_client_library.js",
     {
       crud_api_url            = var.crud_api_url
       crud_api_key            = var.crud_api_key
@@ -43,6 +43,15 @@ resource "aws_s3_bucket_object" "script" {
       image_upload_bucket_url = var.textract_api_url == "" ? "not available" : var.image_upload_bucket_url
     }
   )
+}
+
+resource "aws_s3_bucket_object" "script" {
+  bucket       = aws_s3_bucket.this.id
+  key          = "main.js"
+  content_type = "text/javascript"
+  acl          = var.insecure ? "public-read" : "private"
+
+  content = file("${path.module}/content/main.js")
 }
 
 resource "aws_s3_bucket_object" "page_404" {

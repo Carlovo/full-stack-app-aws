@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "this" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        sse_algorithm     = "AES256"
+        sse_algorithm = "AES256"
       }
     }
   }
@@ -37,6 +37,7 @@ resource "aws_s3_bucket_object" "api_client_library" {
   content = templatefile(
     "${path.module}/content/templates/api_client_library.js",
     {
+      crud_api_tables         = jsonencode(var.tables)
       crud_api_url            = var.crud_api_url
       crud_api_key            = var.crud_api_key
       textract_api_url        = var.textract_api_url == "" ? "not available" : var.textract_api_url

@@ -1,6 +1,9 @@
 "use strict";
 
-import { crudApiUrl, crudApiKey, textractApiUrl, imageUploadBucketUrl } from './api_client_library.js';
+import {
+    textractApiUrl, imageUploadBucketUrl,
+    getTableEntries, createTableEntries, deleteTableEntries, deleteTableEntry, updateTableEntry
+} from './api_client_library.js';
 
 const containerDiv = document.getElementById("container");
 const mainTable = document.getElementById("mainTable");
@@ -353,7 +356,7 @@ var minimalApp = new function () {
             await new Promise(r => setTimeout(r, backOff));
         };
 
-        minimalApp.xhttpGetTableEntries();
+        minimalApp.fetchGetTableEntries();
 
         refreshDict = {};
     };
@@ -368,15 +371,17 @@ var minimalApp = new function () {
             for (it = 0, it2 = items.length; it < it2; it += chunk) {
 
                 refreshDict[String(it)] = false;
-
                 tempArray = items.slice(it, it + chunk);
-                minimalApp.xhttpQueryBackEnd("POST", "", { "operation": operation, "items": tempArray }, String(it));
+
+                const promise = operation(queryTable, tempArray);
+                minimalApp.handleTableEntriesModificationResponse(promise, String(it));
             };
 
             minimalApp.backOffGet();
         } else {
 
-            minimalApp.xhttpQueryBackEnd("POST", "", { "operation": operation, "items": items });
+            const promise = operation(queryTable, items);
+            minimalApp.handleTableEntriesModificationResponse(promise);
         };
     };
 
@@ -409,7 +414,7 @@ var minimalApp = new function () {
 
             if (cbOptionsOnline.checked) {
 
-                minimalApp.batchRequest("put", [itemDict]);
+                minimalApp.batchRequest(createTableEntries, [itemDict]);
             } else {
 
                 // this is not foolproof, but it's not used downstream in the current setup
@@ -442,7 +447,8 @@ var minimalApp = new function () {
 
             if (cbOptionsOnline.checked) {
 
-                minimalApp.xhttpQueryBackEnd("PATCH", itemDict["id"], itemDict);
+                const promise = updateTableEntry(queryTable, itemDict["id"], itemDict);
+                minimalApp.handleTableEntriesModificationResponse(promise);
             } else {
 
                 console.log(itemDict);
@@ -465,7 +471,8 @@ var minimalApp = new function () {
 
         if (cbOptionsOnline.checked) {
 
-            minimalApp.xhttpQueryBackEnd("PATCH", itemDict["id"], itemDict);
+            const promise = updateTableEntry(queryTable, itemDict["id"], itemDict);
+            minimalApp.handleTableEntriesModificationResponse(promise);
         } else {
 
             tableEntries[entryNumber]["check"] = inputElement.checked;
@@ -480,7 +487,8 @@ var minimalApp = new function () {
 
         if (cbOptionsOnline.checked) {
 
-            minimalApp.xhttpQueryBackEnd("DELETE", tableEntries[entryNumber]["id"]);
+            const promise = deleteTableEntry(queryTable, tableEntries[entryNumber]["id"]);
+            minimalApp.handleTableEntriesModificationResponse(promise);
         } else {
 
             var itemDict = tableEntries[entryNumber];
@@ -516,7 +524,7 @@ var minimalApp = new function () {
             };
         });
 
-        minimalApp.batchRequest("put", items);
+        minimalApp.batchRequest(createTableEntries, items);
     };
 
     this.inputBulkImage = function (nameList) {
@@ -593,7 +601,7 @@ var minimalApp = new function () {
 
                 var checkedItemKeys = checkedItems.map(item => item["id"]);
 
-                minimalApp.batchRequest("delete", checkedItemKeys);
+                minimalApp.batchRequest(deleteTableEntries, checkedItemKeys);
             };
         } else {
 
@@ -622,16 +630,16 @@ var minimalApp = new function () {
 
                 refreshDict[entry["id"]] = false;
 
-                minimalApp.xhttpQueryBackEnd(
-                    "PATCH",
+                const promise = updateTableEntry(
+                    queryTable,
                     entry["id"],
                     {
                         "name": entry["name"],
                         "priority": entry["priority"],
                         "check": !(entry["check"])
-                    },
-                    entry["id"]
+                    }
                 );
+                minimalApp.handleTableEntriesModificationResponse(promise, entry["id"]);
             });
 
             minimalApp.backOffGet();
@@ -662,66 +670,33 @@ var minimalApp = new function () {
         minimalApp.scaleContent();
     };
 
-    this.xhttpGetTableEntries = function () {
-
-        var xhttp = new XMLHttpRequest();
-
-        xhttp.onreadystatechange = function () {
-
-            if (this.readyState == 4) {
-
-                if (this.status == 200) {
-
-                    tableEntries = JSON.parse(this.responseText);
-
-                    minimalApp.buildMainTable();
-                } else {
-
-                    minimalApp.alertInvalidRequest();
-                };
-            };
-        };
-
-        xhttp.open("GET", crudApiUrl + queryTable);
-        xhttp.setRequestHeader("x-api-key", crudApiKey);
-        xhttp.send();
-
+    this.fetchGetTableEntries = function () {
         minimalApp.toggleDisabledInput(true);
+
+        getTableEntries(queryTable)
+            .then(response => {
+                tableEntries = response;
+                minimalApp.buildMainTable();
+            })
+            .catch(error => {
+                minimalApp.alertInvalidRequest();
+            });
     };
 
-    this.xhttpQueryBackEnd = function (method, urlAppendix = "", bodyDict = {}, refresh = "") {
-
-        var bodyText = JSON.stringify(bodyDict);
-        var xhttp = new XMLHttpRequest();
-
-        console.log(bodyText);
-
-        xhttp.onreadystatechange = function () {
-
-            if (this.readyState == 4) {
-
-                if (this.status == 200) {
-
-                    if (refresh == "") {
-
-                        minimalApp.xhttpGetTableEntries();
-                    } else {
-
-                        refreshDict[refresh] = true;
-                    };
-                } else {
-
-                    minimalApp.alertInvalidRequest();
-                };
-            };
-        };
-
-        xhttp.open(method, crudApiUrl + queryTable + "/" + urlAppendix);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.setRequestHeader("x-api-key", crudApiKey);
-        xhttp.send(bodyText);
-
+    this.handleTableEntriesModificationResponse = function (promise, refresh = "") {
         minimalApp.toggleDisabledInput(true);
+
+        promise
+            .then(response => {
+                if (refresh == "") {
+                    minimalApp.fetchGetTableEntries();
+                } else {
+                    refreshDict[refresh] = true;
+                };
+            })
+            .catch(error => {
+                minimalApp.alertInvalidRequest();
+            });
     };
 
     this.xhttpGetUploadURL = function () {
@@ -742,8 +717,6 @@ var minimalApp = new function () {
                 xhttp.onreadystatechange = function () {
 
                     if (this.readyState == 4) {
-
-                        console.log(this.responseText);
 
                         if (this.status == 200) {
 
@@ -771,7 +744,6 @@ var minimalApp = new function () {
         var presignedInfoDict = JSON.parse(presignedInfoText);
 
         var file = document.getElementById("Bulk-Image-Multiline").files[0];
-        console.log(file);
 
         var xhttp = new XMLHttpRequest();
 
@@ -797,8 +769,6 @@ var minimalApp = new function () {
 
         formData.append("file", file);
 
-        console.log(formData);
-
         // The presigned response also contains the bucket url,
         // but it can take up to 24 hours before the global url works.
         xhttp.open("POST", imageUploadBucketUrl);
@@ -812,13 +782,9 @@ var minimalApp = new function () {
         var bodyText = JSON.stringify({ "name": imageName });
         var xhttp = new XMLHttpRequest();
 
-        console.log(bodyText);
-
         xhttp.onreadystatechange = function () {
 
             if (this.readyState == 4) {
-
-                console.log(this.responseText);
 
                 if (this.status == 200) {
 
@@ -984,7 +950,7 @@ var minimalApp = new function () {
 
         if (typeof queryTable === "string" && queryTable.length > 0) {
 
-            minimalApp.xhttpGetTableEntries();
+            minimalApp.fetchGetTableEntries();
 
             mainTable.innerHTML = "";
             var tr = mainTable.insertRow(-1);

@@ -503,6 +503,13 @@ var minimalApp = new function () {
 
     this.parseBulkInput = function (nameList) {
 
+        var cbInvert = document.getElementById("Invert-Bulk-Multiline");
+
+        if (cbInvert.checked) {
+
+            nameList = nameList.map(name => name.split(' ').reverse().join(' '));
+        };
+
         var nbPriority = document.getElementById("Priority-Bulk-Multiline");
         var cbCheck = document.getElementById("Check-Bulk-Multiline");
 
@@ -525,29 +532,6 @@ var minimalApp = new function () {
         });
 
         minimalApp.batchRequest(createTableEntries, items);
-    };
-
-    this.inputBulkImage = function (nameList) {
-
-        var cbInvert = document.getElementById("Invert-Bulk-Multiline");
-
-        if (cbInvert.checked) {
-
-            nameList = nameList.map(name => name.split(' ').reverse().join(' '));
-        };
-
-        var cbRedact = document.getElementById("Redact-Bulk-Multiline");
-
-        if (cbRedact.checked) {
-
-            var taName = document.getElementById("Name-Bulk-Multiline");
-            taName.value = nameList.join("\n");
-
-            minimalApp.toggleDisabledInput(false);
-        } else {
-
-            minimalApp.parseBulkInput(nameList);
-        };
     };
 
     this.inputBulkMultiline = function () {
@@ -790,7 +774,18 @@ var minimalApp = new function () {
 
                     var nameList = JSON.parse(this.responseText);
 
-                    minimalApp.inputBulkImage(nameList);
+                    var cbRedact = document.getElementById("Redact-Bulk-Multiline");
+
+                    if (cbRedact.checked) {
+
+                        var taName = document.getElementById("Name-Bulk-Multiline");
+                        taName.value = nameList.join("\n");
+
+                        minimalApp.toggleDisabledInput(false);
+                    } else {
+
+                        minimalApp.parseBulkInput(nameList);
+                    };
                 } else {
 
                     minimalApp.alertInvalidRequest();

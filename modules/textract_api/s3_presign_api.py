@@ -1,11 +1,11 @@
 import boto3
 import uuid
 
+client = boto3.client('s3')
+
 
 def lambda_handler(event, context):
     print(event)
-
-    client = boto3.client('s3')
 
     name_id = str(uuid.uuid4())
 

@@ -1,14 +1,14 @@
 import json
 import boto3
 
+textract_client = boto3.client('textract')
+
 
 class OpticalCharacterReader:
 
-    def __init__(self):
-        self.textract_client = boto3.client('textract')
-
-    def detect_document_text(self, filename: str):
-        return self.textract_client.detect_document_text(
+    @staticmethod
+    def detect_document_text(filename: str):
+        return textract_client.detect_document_text(
             Document={'S3Object': {
                 # bucket name templated by Terraform
                 'Bucket': '${bucket_name}',
@@ -119,8 +119,8 @@ class OpticalCharacterReader:
 
         return text_lines
 
-    @classmethod
-    def extract_text_from_bullet_list(cls, bulleted_lines):
+    @staticmethod
+    def extract_text_from_bullet_list(bulleted_lines):
         """If present, remove bullet marks from a list of strings."""
 
         lower_first_chars = ''.join(
@@ -151,7 +151,8 @@ class OpticalCharacterReader:
 
         return cls.extract_text_from_bullet_list(bulleted_lines=text_lines)
 
-    def get_horizontal_text_lines(self, filename: str):
+    @classmethod
+    def get_horizontal_text_lines(cls, filename: str):
         """Get horizontal lines of text form an image.
 
         Args:
@@ -161,9 +162,9 @@ class OpticalCharacterReader:
             List of string: List of detected lines of text
         """
 
-        response = self.detect_document_text(filename=filename)
+        response = cls.detect_document_text(filename=filename)
 
-        return self._refine_to_horizontal_text_lines(textract_api_response=response)
+        return cls._refine_to_horizontal_text_lines(textract_api_response=response)
 
 
 def lambda_handler(event, context):

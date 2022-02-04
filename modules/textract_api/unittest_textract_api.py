@@ -64,9 +64,7 @@ class TestTextractApi(unittest.TestCase):
 
         for expected_output in self.expected_outputs:
 
-            with mock.patch('textract_api.boto3.client') as mock_client:
-
-                mock_client.return_value = textract_client
+            with mock.patch('textract_api.textract_client', textract_client):
 
                 lambda_output = textract_api.lambda_handler(
                     event={
@@ -74,8 +72,6 @@ class TestTextractApi(unittest.TestCase):
                     },
                     context={}
                 )
-
-                mock_client.assert_called_once()
 
                 assert len(expected_output) == len(lambda_output)
 

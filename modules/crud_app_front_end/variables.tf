@@ -49,6 +49,18 @@ variable "crud_api_key" {
   description = "The API key needed to access the CRUD API."
 }
 
+variable "app_landing_page_name" {
+  type        = string
+  default     = "index.html"
+  description = "The URI resource name of app front end page."
+}
+
+variable "redirect_missing_file_extension_to_html" {
+  type        = bool
+  default     = false
+  description = "Redirect users querying for resource without a file extension (or just . or /) to .html."
+}
+
 locals {
   alternate_domain_names = var.alternate_domain_name == "" ? [] : [var.alternate_domain_name, "www.${var.alternate_domain_name}"]
 }

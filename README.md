@@ -73,6 +73,18 @@ Run the regular `terraform init` as normal.
 Run `terraform apply -var='tables=["to-do","shopping-list"]'` and Terraform will deploy an extra DynamoDB table to provide you with multiple databases with which the rest of the app can work.
 The names in the list are used to generate names of AWS resources, so names must be unique in the list and cannot contain too eccentric characters.
 
+#### Custom page name for the app front end
+
+By default, the app front end is deployed with the URL resource name `index.html`.
+If you want something else, you can apply for example with `-var='app_landing_page_name=something-else.html'`.
+
+#### Redirect missing file extensions in resource name to .html
+
+Most websites allow you to navigate to a page without explicitly typing `.html` at the end of the URL.
+You can activate such behavior for the domain that is deployed via these templates as well.
+Run `terraform apply` with the variable `-var='redirect_missing_file_extension_to_html=true'` and from then on everything ending with a `.`, `/` or no file extension at all will be redirected to the `.html` resource with the same name.
+These redirects are performed by CloudFront Functions, so this feature may introduce a little extra latency (and costs if you exceed free tier).
+
 ### Terraform output
 
 Terraform will output the endpoints of the website and API(s) of your app if deployment was successful.

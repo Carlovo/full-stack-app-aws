@@ -47,3 +47,15 @@ variable "crud_api_daily_usage_quota" {
   default     = 0
   description = "The maximum number of requests per day the CRUD API is allowed to respond to, makes API key usage compulsory."
 }
+
+variable "app_landing_page_name" {
+  type        = string
+  default     = "index.html"
+  description = "The URI resource name of app front end page."
+}
+
+variable "redirect_missing_file_extension_to_html" {
+  type        = bool
+  default     = false
+  description = "Redirect users querying for resource without a file extension (or just . or /) to .html."
+}

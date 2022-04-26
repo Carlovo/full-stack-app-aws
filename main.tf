@@ -38,12 +38,14 @@ module "textract_api" {
 module "front_end" {
   source = "./modules/crud_app_front_end"
 
-  alternate_domain_name   = var.alternate_domain_name
-  insecure                = var.insecure
-  tables                  = var.tables
-  crud_api_url            = module.crud_api.full_invoke_url
-  textract_api_url        = var.textract_api ? module.textract_api[0].full_invoke_url : ""
-  image_upload_bucket_url = var.textract_api ? module.textract_api[0].bucket_full_regional_url : ""
-  app_id                  = local.app_id
-  crud_api_key            = var.crud_api_daily_usage_quota > 0 ? module.crud_api.usage_key : ""
+  alternate_domain_name                   = var.alternate_domain_name
+  insecure                                = var.insecure
+  tables                                  = var.tables
+  crud_api_url                            = module.crud_api.full_invoke_url
+  textract_api_url                        = var.textract_api ? module.textract_api[0].full_invoke_url : ""
+  image_upload_bucket_url                 = var.textract_api ? module.textract_api[0].bucket_full_regional_url : ""
+  app_id                                  = local.app_id
+  crud_api_key                            = var.crud_api_daily_usage_quota > 0 ? module.crud_api.usage_key : ""
+  app_landing_page_name                   = var.app_landing_page_name
+  redirect_missing_file_extension_to_html = var.redirect_missing_file_extension_to_html
 }

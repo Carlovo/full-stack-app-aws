@@ -43,7 +43,7 @@ locals {
 
 resource "aws_s3_object" "index" {
   bucket       = aws_s3_bucket.this.id
-  key          = "index.html"
+  key          = var.app_landing_page_name
   content_type = "text/html"
   acl          = var.insecure ? "public-read" : "private"
   content      = local.index_content

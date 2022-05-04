@@ -85,6 +85,16 @@ You can activate such behavior for the domain that is deployed via these templat
 Run `terraform apply` with the variable `-var='redirect_missing_file_extension_to_html=true'` and from then on everything ending with a `.`, `/` or no file extension at all will be redirected to the `.html` resource with the same name.
 These redirects are performed by CloudFront Functions, so this feature may introduce a little extra latency (and costs if you exceed free tier).
 
+#### Input variable simplification
+
+If you have to often apply a Terraform configuration with a lot of variables (like this one), then getting all the variables correct on the cli can become cumbersome.
+This is even more true if you apply over multiple workspaces.
+That's why this Terraform code has 'one variable to rule them all': `workspace_variables`.
+This variable can contain sets of all sub-variables and can select a set based on the current workspace.
+Sets of those variables can then be put in vars file which Terraform reads upon apply.
+This greatly simplifies applying a Terraform configuration with a complicated set of variables.
+For more explanation and examples see this [blog post](https://dev.to/carlovo/input-variables-file-for-multiple-terraform-workspaces-19f7) and/or [this gist](https://gist.github.com/Carlovo/42dcf2b2f62972891e374699552c14c2).
+
 ### Terraform output
 
 Terraform will output the endpoints of the website and API(s) of your app if deployment was successful.

@@ -40,6 +40,16 @@ var minimalApp = new function () {
         var tr = mainTable.insertRow(-1);
         tr.setAttribute("id", "tr-" + entryNumber);
 
+        var cbOptionsHideChecked = document.getElementById("Options-Hide-Checked");
+
+        if (cbOptionsHideChecked.checked) {
+
+            if (tableEntry["check"]) {
+
+                tr.setAttribute("style", "display:none;");
+            };
+        };
+
         var idCell = tr.insertCell(-1);
         idCell.innerHTML = tableEntry["id"];
         idCell.setAttribute("id", "Id-" + entryNumber);
@@ -222,7 +232,7 @@ var minimalApp = new function () {
         });
     };
 
-    this.buildMainTable = function () {
+    this.buildMainTable = function (scrollY = 0) {
 
         mainTable.innerHTML = "";
 
@@ -312,7 +322,7 @@ var minimalApp = new function () {
 
         minimalApp.toggleDisabledInput(false);
 
-        minimalApp.scaleContent();
+        minimalApp.scaleContent(scrollY);
     };
 
     this.validateAlphanumericInput = function (entryNumber, currentPriority) {
@@ -424,7 +434,7 @@ var minimalApp = new function () {
 
                 tableEntries.push(itemDict);
 
-                minimalApp.buildMainTable();
+                minimalApp.buildMainTable(0);
             };
         };
     };
@@ -455,7 +465,7 @@ var minimalApp = new function () {
 
                 tableEntries[entryNumber] = itemDict
 
-                minimalApp.buildMainTable();
+                minimalApp.buildMainTable(window.scrollY);
             };
         };
     };
@@ -475,9 +485,11 @@ var minimalApp = new function () {
             minimalApp.handleTableEntriesModificationResponse(promise);
         } else {
 
+            console.log(itemDict);
+
             tableEntries[entryNumber]["check"] = inputElement.checked;
 
-            console.log(itemDict);
+            minimalApp.buildMainTable(window.scrollY);
         };
     };
 
@@ -497,7 +509,7 @@ var minimalApp = new function () {
 
             console.log(itemDict);
 
-            minimalApp.buildMainTable();
+            minimalApp.buildMainTable(window.scrollY);
         };
     };
 
@@ -660,7 +672,7 @@ var minimalApp = new function () {
         getTableEntries(queryTable)
             .then(response => {
                 tableEntries = response;
-                minimalApp.buildMainTable();
+                minimalApp.buildMainTable(window.scrollY);
             })
             .catch(error => {
                 minimalApp.alertInvalidRequest();
@@ -924,7 +936,7 @@ var minimalApp = new function () {
         };
     };
 
-    this.scaleContent = function () {
+    this.scaleContent = function (scrollY = 0) {
 
         containerDiv.style["transform"] = "initial";
         containerDiv.style["transformOrigin"] = "initial";
@@ -939,6 +951,15 @@ var minimalApp = new function () {
         containerDiv.style.margin = "auto";
         containerDiv.style["transform"] = "scale(" + scale + ")";
         containerDiv.style["transformOrigin"] = "center top";
+
+        // dirty hack to overrule the priority scrolling from element.focus() seems to get on mobile devices
+        setTimeout(() => {
+            window.scroll({
+                top: scrollY,
+                left: 0,
+                behavior: "smooth"
+            });
+        }, 100)
     };
 
     this.renderPage = function () {

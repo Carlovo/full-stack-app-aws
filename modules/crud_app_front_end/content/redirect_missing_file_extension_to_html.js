@@ -4,11 +4,13 @@ function handler(event) {
 
   if (uri == '/') {
     // This function overrides the default root object, so this is here to make up for that.
-    request.uri = '/index.html'
+    request.uri = '/index.html';
   } else if (uri.endsWith('/') || uri.endsWith('.')) {
-    request.uri = uri.slice(0, -1) + '.html';
+    request.uri = uri.slice(0, -1).toLowerCase() + '.html';
   } else if (!uri.includes('.')) {
-    request.uri += '.html'
+    request.uri = uri.toLowerCase() + '.html';
+  } else {
+    request.uri = uri.toLowerCase();
   }
 
   return request;

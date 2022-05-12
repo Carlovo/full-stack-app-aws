@@ -1,5 +1,7 @@
 resource "aws_cloudfront_origin_access_identity" "this" {}
 
+data "aws_caller_identity" "current" {}
+
 data "aws_iam_policy_document" "this" {
   statement {
     actions   = ["s3:ListBucket"]
@@ -10,6 +12,7 @@ data "aws_iam_policy_document" "this" {
       identifiers = [aws_cloudfront_origin_access_identity.this.iam_arn]
     }
   }
+
   statement {
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.this.arn}/*"]
@@ -17,6 +20,27 @@ data "aws_iam_policy_document" "this" {
     principals {
       type        = "AWS"
       identifiers = [aws_cloudfront_origin_access_identity.this.iam_arn]
+    }
+  }
+
+  statement {
+    actions = ["s3:*"]
+    effect  = "Deny"
+
+    resources = [
+      aws_s3_bucket.this.arn,
+      "${aws_s3_bucket.this.arn}/*",
+    ]
+
+    not_principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.this.iam_arn]
+    }
+
+    condition {
+      test     = "StringNotEquals"
+      variable = "aws:PrincipalAccount"
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 }

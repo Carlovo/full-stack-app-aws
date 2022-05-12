@@ -13,11 +13,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   }
 }
 
-resource "aws_s3_bucket_acl" "this" {
-  bucket = aws_s3_bucket.this.id
-  acl    = var.insecure ? "public-read" : "private"
-}
-
 locals {
   index_content = templatefile(
     "${path.module}/content/templates/index.html",
@@ -45,7 +40,7 @@ resource "aws_s3_object" "index" {
   bucket       = aws_s3_bucket.this.id
   key          = var.app_landing_page_name
   content_type = "text/html"
-  acl          = var.insecure ? "public-read" : "private"
+  acl          = "public-read"
   content      = local.index_content
   etag         = md5(local.index_content)
 }
@@ -54,7 +49,7 @@ resource "aws_s3_object" "api_client_library" {
   bucket       = aws_s3_bucket.this.id
   key          = "api_client_library.js"
   content_type = "text/javascript"
-  acl          = var.insecure ? "public-read" : "private"
+  acl          = "public-read"
   content      = local.api_client_library_content
   etag         = md5(local.api_client_library_content)
 }
@@ -63,7 +58,7 @@ resource "aws_s3_object" "script" {
   bucket       = aws_s3_bucket.this.id
   key          = "main.js"
   content_type = "text/javascript"
-  acl          = var.insecure ? "public-read" : "private"
+  acl          = "public-read"
   content      = local.script_content
   etag         = md5(local.script_content)
 }
@@ -72,7 +67,7 @@ resource "aws_s3_object" "page_404" {
   bucket       = aws_s3_bucket.this.id
   key          = "404.html"
   content_type = "text/html"
-  acl          = var.insecure ? "public-read" : "private"
+  acl          = "public-read"
   content      = local.page404_content
   etag         = md5(local.page404_content)
 }

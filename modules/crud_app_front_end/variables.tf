@@ -3,12 +3,6 @@ variable "tables" {
   description = "List of unique names (set of strings) for which the front end will show query options."
 }
 
-variable "insecure" {
-  type        = bool
-  default     = false
-  description = "Prevent exclusive CloudFront access to content S3 bucket. Useful for faster development."
-}
-
 variable "alternate_domain_name" {
   type        = string
   default     = ""

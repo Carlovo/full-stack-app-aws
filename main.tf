@@ -39,7 +39,6 @@ module "front_end" {
   source = "./modules/crud_app_front_end"
 
   alternate_domain_name                   = local.alternate_domain_name
-  insecure                                = local.insecure
   tables                                  = local.tables
   crud_api_url                            = module.crud_api.full_invoke_url
   textract_api_url                        = local.textract_api ? module.textract_api[0].full_invoke_url : ""

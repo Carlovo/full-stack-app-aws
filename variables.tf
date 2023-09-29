@@ -4,12 +4,6 @@ variable "alternate_domain_name" {
   description = "Domain name of a HostedZone created by the Route53 Registrar, without trailing '.'"
 }
 
-variable "insecure" {
-  type        = bool
-  default     = null
-  description = "Prevent exclusive CloudFront access to content S3 bucket. Useful for faster development."
-}
-
 variable "tables" {
   type        = set(string)
   default     = null
@@ -61,7 +55,6 @@ variable "redirect_missing_file_extension_to_html" {
 variable "workspace_variables" {
   type = map(object({
     alternate_domain_name                   = string
-    insecure                                = bool
     tables                                  = set(string)
     log_apis                                = bool
     api_gateway_log_role                    = bool
@@ -77,7 +70,6 @@ variable "workspace_variables" {
 locals {
   default_vars = lookup(var.workspace_variables, terraform.workspace, {
     alternate_domain_name                   = ""
-    insecure                                = false
     tables                                  = ["default"]
     log_apis                                = false
     api_gateway_log_role                    = false
@@ -88,7 +80,6 @@ locals {
     redirect_missing_file_extension_to_html = false
   })
   alternate_domain_name                   = var.alternate_domain_name != null ? var.alternate_domain_name : local.default_vars["alternate_domain_name"]
-  insecure                                = var.insecure != null ? var.insecure : local.default_vars["insecure"]
   tables                                  = var.tables != null ? var.tables : local.default_vars["tables"]
   log_apis                                = var.log_apis != null ? var.log_apis : local.default_vars["log_apis"]
   api_gateway_log_role                    = var.api_gateway_log_role != null ? var.api_gateway_log_role : local.default_vars["api_gateway_log_role"]

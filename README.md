@@ -102,19 +102,9 @@ Terraform will output the endpoints of the website and API(s) of your app if dep
 The key to the CRUD API (API usage quota only) is masked by Terraform, because it is sensitive.
 It is still added to the output to remind you it is available and to make it more easy to find it in the state file.
 
-The (insecure) S3 endpoint of your website bucket will also be outputted, but this is only useful/available when you set the insecure variable to `true` for faster testing.
-
 ## Developing further
 
 You may want to consider the following things if you want to further develop this app.
-
-### Faster testing during development
-
-If you want to test new code, you would have to wait until CloudFront updates.
-To temporarily overcome this problem, you can set the Terraform variable `-var='insecure=true'` during `apply`.
-This strips all read protection from S3.
-(When redeploying the app with this option Terraform might fail during apply because of some racing condition in S3, but rerunning Terraform apply solves this.)
-Then you can access your website content via the S3 endpoint immediately after updating.
 
 ### Redeploying APIs
 

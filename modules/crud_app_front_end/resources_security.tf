@@ -55,7 +55,7 @@ resource "aws_s3_bucket_policy" "this" {
 module "certificate_and_validation" {
   count = var.alternate_domain_name == "" ? 0 : 1
 
-  source = "../certificate_and_validation"
+  source = "github.com/Carlovo/acm-certificate-route53-validation"
 
   # CloudFront accepts only ACM certificates from US-EAST-1
   providers = { aws = aws.useast1 }

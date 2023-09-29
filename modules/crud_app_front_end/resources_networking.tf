@@ -74,7 +74,7 @@ resource "aws_cloudfront_distribution" "this" {
 module "alias_a_records" {
   for_each = toset(local.alternate_domain_names)
 
-  source = "../route53_alias_a_records"
+  source = "github.com/Carlovo/route53-alias-records"
 
   dns_record_name = each.key
 

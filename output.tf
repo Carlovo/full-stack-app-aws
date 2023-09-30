@@ -7,7 +7,7 @@ output "textract_api_invoke_url" {
 }
 
 output "cloudfront_endpoint" {
-  value = module.front_end.cloudfront_endpoint
+  value = module.cdn.cloudfront_endpoint
 }
 
 output "crud_api_key" {

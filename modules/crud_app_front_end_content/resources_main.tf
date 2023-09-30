@@ -1,18 +1,3 @@
-resource "aws_s3_bucket" "this" {
-  bucket = "${var.app_id}-front-end"
-  # bucket policy is managed in a separate resource to avoid cyclic dependencies
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
-  bucket = aws_s3_bucket.this.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
 locals {
   index_content = templatefile(
     "${path.module}/content/templates/index.html",
@@ -35,39 +20,34 @@ locals {
   page404_content = file("${path.module}/content/404.html")
 }
 
-
 resource "aws_s3_object" "index" {
-  bucket       = aws_s3_bucket.this.id
+  bucket       = var.bucket_name
   key          = var.app_landing_page_name
   content_type = "text/html"
-  acl          = "public-read"
   content      = local.index_content
   etag         = md5(local.index_content)
 }
 
 resource "aws_s3_object" "api_client_library" {
-  bucket       = aws_s3_bucket.this.id
+  bucket       = var.bucket_name
   key          = "api_client_library.js"
   content_type = "text/javascript"
-  acl          = "public-read"
   content      = local.api_client_library_content
   etag         = md5(local.api_client_library_content)
 }
 
 resource "aws_s3_object" "script" {
-  bucket       = aws_s3_bucket.this.id
+  bucket       = var.bucket_name
   key          = "main.js"
   content_type = "text/javascript"
-  acl          = "public-read"
   content      = local.script_content
   etag         = md5(local.script_content)
 }
 
 resource "aws_s3_object" "page_404" {
-  bucket       = aws_s3_bucket.this.id
+  bucket       = var.bucket_name
   key          = "404.html"
   content_type = "text/html"
-  acl          = "public-read"
   content      = local.page404_content
   etag         = md5(local.page404_content)
 }

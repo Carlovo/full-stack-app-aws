@@ -65,6 +65,7 @@ module "cdn" {
   us_east_1_acm_certificate_arn           = local.alternate_domain_name == "" ? "" : module.certificate_and_validation[0].acm_certificate_arn
   subject_alternative_names               = local.subject_alternative_names
   cloudfront_function_viewer_request_code = local.redirect_missing_file_extension_to_html ? file("${path.module}/modules/redirect_missing_file_extension_to_html.js") : ""
+  log_requests                            = local.log_cdn_requests
 }
 
 module "front_end" {

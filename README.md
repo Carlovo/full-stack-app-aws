@@ -35,6 +35,11 @@ There is no API to remove this coupling in API Gateway, so this stays after a `t
 Lambda is configured to log by default.
 Terraform will destroy all logs produced upon `destroy`.
 
+#### CDN/CloudFront/Front end request logging
+
+If you want to have your requests to the app front end logged as well, then use `-var='log_cdn_requests=true'`.
+A new S3 bucket will be deployed where CloudFront will send the logs.
+
 #### API throttling / usage quota setting
 
 Run `terraform apply` with `-var='apis_rate_limit=42'` to throttle all API Gateway V1 (CRUD) methods and V2 (Textract) routes if more calls are made per second than the number given.

@@ -52,6 +52,12 @@ variable "redirect_missing_file_extension_to_html" {
   description = "Redirect users querying for resource without a file extension (or just . or /) to .html."
 }
 
+variable "log_cdn_requests" {
+  type        = bool
+  default     = null
+  description = "Log requests made to the cloudfront distribution to s3."
+}
+
 variable "workspace_variables" {
   type = map(object({
     alternate_domain_name                   = string
@@ -63,6 +69,7 @@ variable "workspace_variables" {
     crud_api_daily_usage_quota              = number
     app_landing_page_name                   = string
     redirect_missing_file_extension_to_html = bool
+    log_cdn_requests                        = bool
   }))
   default = {}
 }
@@ -78,6 +85,7 @@ locals {
     crud_api_daily_usage_quota              = 0  # no quote
     app_landing_page_name                   = "index.html"
     redirect_missing_file_extension_to_html = false
+    log_cdn_requests                        = false
   })
   alternate_domain_name                   = var.alternate_domain_name != null ? var.alternate_domain_name : local.default_vars["alternate_domain_name"]
   tables                                  = var.tables != null ? var.tables : local.default_vars["tables"]
@@ -88,4 +96,5 @@ locals {
   crud_api_daily_usage_quota              = var.crud_api_daily_usage_quota != null ? var.crud_api_daily_usage_quota : local.default_vars["crud_api_daily_usage_quota"]
   app_landing_page_name                   = var.app_landing_page_name != null ? var.app_landing_page_name : local.default_vars["app_landing_page_name"]
   redirect_missing_file_extension_to_html = var.redirect_missing_file_extension_to_html != null ? var.redirect_missing_file_extension_to_html : local.default_vars["redirect_missing_file_extension_to_html"]
+  log_cdn_requests                        = var.log_cdn_requests != null ? var.log_cdn_requests : local.default_vars["log_cdn_requests"]
 }
